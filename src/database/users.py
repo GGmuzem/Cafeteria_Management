@@ -4,7 +4,7 @@ import os
 import secrets
 import string
 
-# Model definition starts here
+# Здесь мы инициализируем и проверяем таблицу users
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -17,12 +17,12 @@ class User(db.Model):
         self.login = login
         self.password = password
         self.role = role
-        if wallet is None:
+        if wallet is None: # Если нет кошелька или создали человека то создаем ему кошелек
             generated_wallet = ''.join(secrets.choice(string.digits) for _ in range(16))
             self.set_wallet(generated_wallet)
         else:
             self.set_wallet(wallet)
-    key = os.getenv("KEY") 
+    key = os.getenv("KEY") # Это ключ который храниться в .env
     def set_wallet(self, wallet_value): # Шифровка кошелька
         cipher_suite = Fernet(self.key)
         encrypted_text = cipher_suite.encrypt(str(wallet_value).encode('utf-8'))
