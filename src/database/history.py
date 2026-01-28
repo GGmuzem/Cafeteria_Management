@@ -1,6 +1,6 @@
 from src.database import db
 from src.database.users import User
-
+# Здесь мы инициализируем и проверяем таблицу history
 class History(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.String(255), db.ForeignKey('user.login'), nullable=False)
