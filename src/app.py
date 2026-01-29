@@ -76,6 +76,7 @@ def account():
     return render_template("account.html")
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user() # Удаляет сессию
     return redirect(url_for('login'))
