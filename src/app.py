@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-import os
+import os, student
 from flask import request, redirect, url_for, Flask, render_template
 from config import app, db, login_manager
 from database.users import User

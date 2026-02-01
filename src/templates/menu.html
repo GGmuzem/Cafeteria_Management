@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Меню столовой</title>
+</head>
+<body>
+    <h1>Наше Меню</h1>
+    
+    <!-- Форма фильтрации -->
+    <div style="margin-bottom: 20px; padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd;">
+        <form action="/menu" method="get">
+            <label for="allergen">Исключить аллерген (например, лук):</label>
+            <input type="text" id="allergen" name="allergen" value="{{ request.args.get('allergen', '') }}" placeholder="Введите ингредиент">
+            <button type="submit">Применить фильтр</button>
+            <a href="/menu" style="margin-left: 10px;">Сбросить</a>
+        </form>
+    </div>
+
+    <div class="menu-container">
+        {% for item in menu_items %}
+            <div class="menu-item" style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                <h3>{{ item.name }}</h3>
+                <p>Состав: {{ item.composition.ingredients | join(', ')}}</p>
+                <p>Вес: {{ item.composition.weight }} г.</p>
+                <p><strong>Цена:</strong> {{ item.price }} руб.</p>
+            </div>
+        {% else %}
+            <p>Меню пока пусто.</p>
+        {% endfor %}
+    </div>
+    <a href="/account">Вернуться в профиль</a>
+</body>
+</html>

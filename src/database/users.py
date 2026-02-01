@@ -13,8 +13,9 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(10), nullable=False)
     wallet = db.Column(db.String(255), nullable=False, unique=True)
+    allergen = db.Column(db.JSON, nullable=True)
     
-    def __init__(self, login, password, role="student", wallet=None):
+    def __init__(self, login, password, role="student", wallet=None, health=None):
         self.login = login
         self.password = password
         self.role = role
@@ -23,6 +24,8 @@ class User(db.Model, UserMixin):
             self.set_wallet(generated_wallet)
         else:
             self.set_wallet(wallet)
+        self.health = health
+
     key = os.getenv("KEY") # Это ключ который храниться в .env
     def set_wallet(self, wallet_value): # Шифровка кошелька
         cipher_suite = Fernet(self.key)
