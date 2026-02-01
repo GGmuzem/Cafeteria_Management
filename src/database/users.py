@@ -4,6 +4,7 @@ import os
 import secrets
 import string
 from flask_login import UserMixin
+from .wallets import Wallet
 # Здесь мы инициализируем и проверяем таблицу users
 
 class User(db.Model, UserMixin):
@@ -38,8 +39,15 @@ class User(db.Model, UserMixin):
 
     def get_balance(self):  # Баланс
         wallet_number = self.get_wallet()
-        from .wallets import Wallet
-        res = Wallet.query.filter_by(wallet_number=wallet_number).first()
-        if res is None:
-            return 0
-        return res.money
+        wallet = Wallet.query.filter_by(wallet_number=wallet_number).first()
+        if wallet is None:
+            wallet = Wallet(wallet_number=wallet_number, money=0)
+            db.session.add(wallet)
+            db.session.commit()
+        return wallet.money
+
+    def add_money(self, how_many_on): # Пополнение баланса
+        wallet_number = self.get_wallet()
+        wallet = Wallet.query.filter_by(wallet_number=wallet_number).first()
+        wallet.money += float(how_many_on)
+        db.session.commit()

@@ -10,7 +10,7 @@ from database.store import Storage
 from database.reviews import Reviews
 from database.requests import Requests
 from auth import login_user_db, register_user
-from flask_login import logout_user, login_user, login_required
+from flask_login import logout_user, login_user, login_required, current_user
 
 
 def create_db():
@@ -70,9 +70,17 @@ def register():
     return render_template("register.html")
 
 # Страница профиля
-@app.route("/account")
+@app.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
+    if request.method == "POST":
+        how_many_on = request.form.get("how_many_on")
+        if how_many_on:
+            try:
+                current_user.add_money(float(how_many_on))
+            except:
+                pass
+        return redirect("/account")
     return render_template("account.html")
 
 @app.route('/logout')
@@ -84,5 +92,5 @@ def logout():
 if __name__ == "__main__":
     create_db()
     app.run(debug=True)
-    
+
 
