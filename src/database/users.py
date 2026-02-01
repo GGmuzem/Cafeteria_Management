@@ -46,8 +46,22 @@ class User(db.Model, UserMixin):
             db.session.commit()
         return wallet.money
 
-    def add_money(self, how_many_on): # Пополнение баланса
+    def add_money(self, how_many_on): # Начисление денег
         wallet_number = self.get_wallet()
         wallet = Wallet.query.filter_by(wallet_number=wallet_number).first()
-        wallet.money += float(how_many_on)
+        hmo = float(how_many_on)
+        if hmo <= 0:
+            return
+        wallet.money += hmo
+        db.session.commit()
+
+    def rem_money(self, how_many_off): # Снятие денег
+        wallet_number = self.get_wallet()
+        wallet = Wallet.query.filter_by(wallet_number=wallet_number).first()
+        hmo = float(how_many_off)
+        if hmo <= 0:
+            return
+        if wallet.money < hmo:
+            return
+        wallet.money -= hmo
         db.session.commit()

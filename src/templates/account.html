@@ -96,6 +96,13 @@
             </form>
         </div>
 
+        <div class="info-group">
+            <span class="label">Снять:</span>
+            <form method="POST">
+                <input type="number" name="how_many_off">
+                <button type="submit">Снять</button>
+            </form>
+        </div>
 
 
         <a href="{{ url_for('logout') }}" class="btn-logout">Выйти из аккаунта</a>

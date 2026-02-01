@@ -75,9 +75,15 @@ def register():
 def account():
     if request.method == "POST":
         how_many_on = request.form.get("how_many_on")
+        how_many_off = request.form.get("how_many_off")
         if how_many_on:
             try:
                 current_user.add_money(float(how_many_on))
+            except:
+                pass
+        if how_many_off:
+            try:
+                current_user.rem_money(float(how_many_off))
             except:
                 pass
         return redirect("/account")
