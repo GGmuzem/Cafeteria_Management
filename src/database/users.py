@@ -13,25 +13,25 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(10), nullable=False)
     wallet = db.Column(db.String(255), nullable=False, unique=True)
+    key = db.Column(db.String(255), nullable=False)
     
     def __init__(self, login, password, role="student", wallet=None):
         self.login = login
         self.password = password
         self.role = role
-        if wallet is None: # Если нет кошелька или создали человека то создаем ему кошелек
-            generated_wallet = ''.join(secrets.choice(string.digits) for _ in range(16))
-            self.set_wallet(generated_wallet)
-        else:
-            self.set_wallet(wallet)
-    key = os.getenv("KEY") # Это ключ который храниться в .env
+        self.key = Fernet.generate_key().decode()
+        if wallet is None:
+            wallet = ''.join(secrets.choice(string.digits) for _ in range(16))
+        self.set_wallet(wallet)
+    
     def set_wallet(self, wallet_value): # Шифровка кошелька
-        cipher_suite = Fernet(self.key)
+        cipher_suite = Fernet(self.key.encode())
         encrypted_text = cipher_suite.encrypt(str(wallet_value).encode('utf-8'))
         self.wallet = encrypted_text.decode('utf-8')
 
     def get_wallet(self): # Расшифровка кошелька
         try:
-            cipher_suite = Fernet(self.key)
+            cipher_suite = Fernet(self.key.encode())
             decrypted_text = cipher_suite.decrypt(self.wallet.encode('utf-8'))
             return decrypted_text.decode('utf-8')
         except Exception as e:

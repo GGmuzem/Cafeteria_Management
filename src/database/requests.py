@@ -1,5 +1,7 @@
 from config import db
+from datetime import datetime
 # Здесь мы инициализируем и проверяем таблицу requests
+
 class Requests(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
