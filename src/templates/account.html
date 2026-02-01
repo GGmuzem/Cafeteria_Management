@@ -82,6 +82,10 @@
             <span class="label">Ключ кошелька (расшифрован):</span>
             <span class="value">{{ current_user.get_wallet() }}</span>
         </div>
+        <div class="info-group">
+            <span class="label">Баланс кошелька:</span>
+            <span class="value">{{ current_user.get_balance() }}</span>
+        </div>
 
         <a href="{{ url_for('logout') }}" class="btn-logout">Выйти из аккаунта</a>
     </div>

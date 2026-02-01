@@ -4,7 +4,6 @@ import os
 import secrets
 import string
 from flask_login import UserMixin
-
 # Здесь мы инициализируем и проверяем таблицу users
 
 class User(db.Model, UserMixin):
@@ -23,7 +22,7 @@ class User(db.Model, UserMixin):
             self.set_wallet(generated_wallet)
         else:
             self.set_wallet(wallet)
-    key = os.getenv("KEY") # Это ключ который храниться в .env
+    key = os.getenv("KEY") # Это ключ который храниться в ..env
     def set_wallet(self, wallet_value): # Шифровка кошелька
         cipher_suite = Fernet(self.key)
         encrypted_text = cipher_suite.encrypt(str(wallet_value).encode('utf-8'))
@@ -36,3 +35,11 @@ class User(db.Model, UserMixin):
             return decrypted_text.decode('utf-8')
         except Exception as e:
             return f"Error decoding: {e}"
+
+    def get_balance(self):  # Баланс
+        wallet_number = self.get_wallet()
+        from .wallets import Wallet
+        res = Wallet.query.filter_by(wallet_number=wallet_number).first()
+        if res is None:
+            return 0
+        return res.money
