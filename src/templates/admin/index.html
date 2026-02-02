@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Администратор</title>
+</head>
+<body>
+
+<h1>Панель администратора</h1>
+
+<hr>
+<h2>Заявки на закупку</h2>
+
+<table border="1">
+    <tr>
+        <th>Продукт</th>
+        <th>Количество</th>
+        <th>Статус</th>
+        <th>Действия</th>
+    </tr>
+    {% for r in requests %}
+    <tr>
+        <td>{{ r.product }}</td>
+        <td>{{ r.amount }}</td>
+        <td>{{ r.status }}</td>
+        <td>
+            <form method="post" style="display:inline">
+                <input type="hidden" name="action" value="approve_request">
+                <input type="hidden" name="request_id" value="{{ r.id }}">
+                <button>✔ Одобрить</button>
+            </form>
+
+            <form method="post" style="display:inline">
+                <input type="hidden" name="action" value="reject_request">
+                <input type="hidden" name="request_id" value="{{ r.id }}">
+                <button>✖ Отклонить</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<!-- <hr>
+<h2>Пользователи</h2>
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Логин</th>
+        <th>Роль</th>
+        <th>Изменить роль</th>
+    </tr>
+    {% for u in users %}
+    <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.login }}</td>
+        <td>{{ u.role }}</td>
+        <td>
+            <form method="post">
+                <input type="hidden" name="action" value="change_role">
+                <input type="hidden" name="user_id" value="{{ u.id }}">
+                <select name="role">
+                    <option value="student">student</option>
+                    <option value="cook">cook</option>
+                    <option value="admin">admin</option>
+                </select>
+                <button>Сохранить</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table> -->
+
+<hr>
+<a href="/logout">Выйти</a>
+
+</body>
+</html>
