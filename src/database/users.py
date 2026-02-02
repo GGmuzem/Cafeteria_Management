@@ -5,6 +5,7 @@ import secrets
 import string
 from flask_login import UserMixin
 from .wallets import Wallet
+from .history import history_operation
 # Здесь мы инициализируем и проверяем таблицу users
 
 class User(db.Model, UserMixin):
@@ -53,7 +54,14 @@ class User(db.Model, UserMixin):
         if hmo <= 0:
             return
         wallet.money += hmo
+        history = history_operation(
+                    user_id=self.id,
+                    operation_type='Начисление',
+                    how_many=how_many_on,
+                )
+        db.session.add(history)
         db.session.commit()
+
 
     def rem_money(self, how_many_off): # Снятие денег
         wallet_number = self.get_wallet()
@@ -64,4 +72,13 @@ class User(db.Model, UserMixin):
         if wallet.money < hmo:
             return
         wallet.money -= hmo
+        history = history_operation(
+            user_id=self.id,
+            operation_type='Снятие',
+            how_many=how_many_off,
+        )
+        db.session.add(history)
         db.session.commit()
+
+    def get_history_operation(self): # Получаем историю опреаций (недавних)
+        return history_operation.query.filter_by(user_id=self.id).order_by(history_operation.time.desc()).all()

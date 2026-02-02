@@ -4,7 +4,7 @@ from flask import request, redirect, url_for, Flask, render_template
 from config import app, db, login_manager
 from database.users import User
 from database.wallets import Wallet
-from database.history import History
+from database.history import history_operation
 from database.menu import Menu
 from database.store import Storage
 from database.reviews import Reviews
@@ -73,6 +73,14 @@ def register():
 @app.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
+
+    # Создание таблицы history_operation
+    from sqlalchemy import inspect
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if 'history_operation' not in inspector.get_table_names():
+            history_operation.__table__.create(db.engine)
+
     if request.method == "POST":
         how_many_on = request.form.get("how_many_on")
         how_many_off = request.form.get("how_many_off")
@@ -87,7 +95,16 @@ def account():
             except:
                 pass
         return redirect("/account")
+
     return render_template("account.html")
+
+# Страница истории операций с балансом
+@app.route("/history_operation")
+@login_required
+def history_operation():
+    his= current_user.get_history_operation()
+    return render_template("history_operation.html", history=his)
+
 
 @app.route('/logout')
 @login_required
