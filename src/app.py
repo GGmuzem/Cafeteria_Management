@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-import os, student
+import os, student, cook, service
 from flask import request, redirect, url_for, Flask, render_template
 from config import app, db, login_manager
 from database.users import User
@@ -85,4 +85,3 @@ if __name__ == "__main__":
     create_db()
     app.run(debug=True)
     
-

@@ -10,6 +10,18 @@ from config import db
 from schemas import StorageCreate, StorageDelete
 from pydantic import ValidationError
 
+from flask import render_template, request
+from config import app, db
+from flask_login import login_required, current_user
+
+@app.route('/storage')
+@login_required
+def storage():
+    storage_items = Storage.query.all()
+    if current_user.role == "student":
+        return "Доступ запрещен"
+    return render_template('storage.html', storage_items=storage_items)
+
 def add_product(data: dict):
     try:
         validated_data = StorageCreate(**data)
