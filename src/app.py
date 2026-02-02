@@ -30,6 +30,7 @@ def create_db():
         with app.app_context():
             db.create_all()
 
+# Декоратор для проверки прав доступа к страницам администратора
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
