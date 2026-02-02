@@ -6,6 +6,7 @@ from flask_login import LoginManager
 # Flask
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
+app.config["CREATE_TEST_USERS"] = True
 
 # SQLAlchemy
 basepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
