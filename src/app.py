@@ -11,7 +11,8 @@ from database.store import Storage
 from database.reviews import Reviews
 from database.requests import Requests
 from auth import login_user_db, register_user
-from flask_login import logout_user, login_user, login_required
+from flask_login import logout_user, login_user, login_required, current_user
+from functools import wraps
 
 
 def create_db():
@@ -28,6 +29,15 @@ def create_db():
     else:
         with app.app_context():
             db.create_all()
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != 'admin':
+            flash("У вас нет прав доступа к этой странице.")
+            return redirect(url_for('account'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Загрузка пользователей
 @login_manager.user_loader
@@ -70,44 +80,19 @@ def register():
             return "Ошибка регистрации"
     return render_template("register.html")
 
-@app.route("/admin")
+@app.route("/admin-panel")
 @login_required
+@admin_required
 def admin_panel():
-    # TODO: Добавить проверку, что текущий пользователь - админ (например, if current_user.role != 'admin': return redirect(...))
-    if current_user.role != 'admin':
-        return redirect(url_for("account"))
-    users = User.query.all()
+    users = db.session.query(User, Wallet).outerjoin(Wallet, User.wallet == Wallet.wallet_number).all()
     return render_template("admin_panel.html", users=users)
 
-@app.route("/admin/add_user", methods=["POST"])
-@login_required
-def admin_add_user():
-    # TODO: Проверка прав админа
-    login = request.form.get("login")
-    password = request.form.get("password")
-    role = request.form.get("role")
-    
-    if User.query.filter_by(login=login).first():
-        flash("Пользователь с таким логином уже существует")
-        return redirect(url_for("admin_panel"))
-        
-    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-    new_user = User(login=login, password=hashed_password, role=role)
-    
-    try:
-        db.session.add(new_user)
-        db.session.commit()
-        flash("Пользователь добавлен")
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Ошибка добавления: {e}")
-        
-    return redirect(url_for("admin_panel"))
 
-@app.route("/admin/update_role", methods=["POST"])
+
+@app.route("/admin-panel/update_role", methods=["POST"])
 @login_required
+@admin_required
 def admin_update_role():
-    # TODO: Проверка прав админа
     user_id = request.form.get("user_id")
     new_role = request.form.get("new_role")
     
@@ -121,10 +106,10 @@ def admin_update_role():
         
     return redirect(url_for("admin_panel"))
 
-@app.route("/admin/delete_user", methods=["POST"])
+@app.route("/admin-panel/delete_user", methods=["POST"])
 @login_required
+@admin_required
 def admin_delete_user():
-    # TODO: Проверка прав админа
     user_id = request.form.get("user_id")
     
     user = User.query.get(user_id)
