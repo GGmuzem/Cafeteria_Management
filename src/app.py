@@ -6,6 +6,7 @@ from auth import login_user_db, register_user
 from werkzeug.security import generate_password_hash
 from cook import cook_bp
 from admin import admin_bp
+import os
 
 app.register_blueprint(cook_bp) #блюпринт повара
 app.register_blueprint(admin_bp) #блюпринт админа
@@ -14,7 +15,20 @@ app.register_blueprint(admin_bp) #блюпринт админа
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
+def create_db():
+    # Получаем путь к базе данных из конфига
+    uri = app.config['SQLALCHEMY_DATABASE_URI']
+    if uri.startswith('sqlite:///'):
+        db_path = uri.replace('sqlite:///', '')
+        
+        if not os.path.exists(db_path):
+            print(f"Создание базы данных по пути: {db_path}")
+            with app.app_context():
+                db.create_all()
+            print("База данных успешно создана!")
+    else:
+        with app.app_context():
+            db.create_all()
 
 @app.route("/") #Главная
 def index():
@@ -67,4 +81,5 @@ def logout():
 
 
 if __name__ == "__main__":
+    create_db()
     app.run(debug=True)
