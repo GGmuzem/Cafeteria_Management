@@ -14,7 +14,7 @@ cook_bp = Blueprint("cook", __name__, url_prefix="/cook")
 @cook_bp.route("/", methods=["GET", "POST"])
 @login_required
 def cook_panel():
-    if current_user.role != "cook":
+    if current_user.role == "student":
         return "Доступ запрещён", 403
 
     if request.method == "POST":
@@ -24,6 +24,7 @@ def cook_panel():
             name = request.form.get("name")
             price = request.form.get("price")
             composition_raw = request.form.get("composition")
+            weight = request.form.get("weight", "")
 
             if not name or not price or not composition_raw:
                 return "Заполните все поля", 400
@@ -34,10 +35,15 @@ def cook_panel():
                 if item.strip()
             ]
 
+            composition_data = {
+                "ingredients": composition_list,
+                "weight": weight
+            }
+
             dish = Menu(
                 name=name,
                 price=int(price),
-                composition=", ".join(composition_list)
+                composition=composition_data
             )
 
             db.session.add(dish)
@@ -93,3 +99,43 @@ def cook_panel():
         storage=storage,
         history=history
     )
+
+@cook_bp.route("/edit_menu/<int:id>", methods=["GET", "POST"])
+@login_required
+def edit_menu(id):
+    if current_user.role not in ["cook", "admin"]:
+        return "Доступ запрещён", 403
+    
+    dish = db.session.get(Menu, id)
+    if not dish:
+        return "Блюдо не найдено", 404
+
+    if request.method == "POST":
+        dish.name = request.form.get("name")
+        dish.price = int(request.form.get("price"))
+        
+        # Сохраняем состав в правильном JSON формате
+        composition_raw = request.form.get("composition")
+        composition_list = [x.strip() for x in composition_raw.split(",") if x.strip()]
+        
+        dish.composition = {
+            "ingredients": composition_list,
+            "weight": request.form.get("weight", "")
+        }
+        
+        db.session.commit()
+        return redirect(url_for("menu"))
+
+    return render_template("edit_menu.html", dish=dish)
+
+@cook_bp.route("/delete_menu/<int:id>")
+@login_required
+def delete_menu(id):
+    if current_user.role not in ["cook", "admin"]:
+        return "Доступ запрещён", 403
+        
+    dish = db.session.get(Menu, id)
+    if dish:
+        db.session.delete(dish)
+        db.session.commit()
+    return redirect(url_for("menu"))

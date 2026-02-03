@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование блюда</title>
+</head>
+<body>
+    <h1>Редактирование: {{ dish.name }}</h1>
+    
+    <form method="POST">
+        <label>Название:</label><br>
+        <input type="text" name="name" value="{{ dish.name }}" required><br><br>
+        
+        <label>Цена (руб):</label><br>
+        <input type="number" name="price" value="{{ dish.price }}" required><br><br>
+        
+        <label>Состав (через запятую):</label><br>
+        <!-- Логика для отображения состава в поле ввода -->
+        {% set ingredients_val = '' %}
+        {% if dish.composition is mapping %}
+            {% set ingredients_val = dish.composition.get('ingredients', []) | join(', ') %}
+        {% else %}
+            {% set ingredients_val = dish.composition %}
+        {% endif %}
+        <textarea name="composition" rows="3" cols="40" required>{{ ingredients_val }}</textarea><br><br>
+
+        <label>Вес (г):</label><br>
+        {% set weight_val = '' %}
+        {% if dish.composition is mapping %}
+            {% set weight_val = dish.composition.get('weight', '') %}
+        {% endif %}
+        <input type="number" name="weight" value="{{ weight_val }}"><br><br>
+        
+        <button type="submit">Сохранить изменения</button>
+        <a href="/menu">Отмена</a>
+    </form>
+</body>
+</html>

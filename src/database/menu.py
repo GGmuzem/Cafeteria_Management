@@ -7,6 +7,8 @@ class Menu(db.Model):
     # Здесь храним состав блюда в виде документа (JSON)
     # Например: {"meat": "beef", "weight": 200, "sauce": "bbq"}
     composition = db.Column(db.JSON, nullable=False)
+    meal_type = db.Column(db.String(20), nullable=True) # используется в меню завтрак/обед
+
     
     def __init__(self, name, price, composition):
         self.name = name

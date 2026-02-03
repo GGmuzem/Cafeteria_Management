@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование товара</title>
+</head>
+<body>
+    <h2>Редактирование: {{ item.name }}</h2>
+    
+    <form method="POST">
+        <label>Название: <br>
+        <input type="text" name="name" value="{{ item.name }}" required></label><br><br>
+        
+        <label>Количество: <br>
+        <input type="number" name="count" value="{{ item.count }}" required></label><br><br>
+        
+        <label>Тип: <br>
+            <select name="type_of_product">
+                <option value="продукт" {% if item.type_of_product == 'продукт' %}selected{% endif %}>Продукт</option>
+                <option value="блюдо" {% if item.type_of_product == 'блюдо' %}selected{% endif %}>Блюдо</option>
+            </select>
+        </label><br><br>
+        
+        <button type="submit">Сохранить изменения</button>
+    </form>
+    <br>
+    <a href="/storage">Отмена (Вернуться на склад)</a>
+</body>
+</html>

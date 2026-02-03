@@ -24,9 +24,17 @@ def menu():
     if allergen:
         allergen = allergen.lower().strip()
         # Оставляем только те блюда, в ингредиентах которых НЕТ указанного аллергена
-        menu_items = [
-            item for item in menu_items
-            if not any(allergen in str(ing).lower() for ing in item.composition.get('ingredients', []))
-        ]
+        filtered_items = []
+        for item in menu_items:
+            # Безопасное получение строки ингредиентов
+            if isinstance(item.composition, dict):
+                ingredients = item.composition.get('ingredients', [])
+                ing_str = ", ".join(ingredients) if isinstance(ingredients, list) else str(ingredients)
+            else:
+                ing_str = str(item.composition)
+            
+            if allergen not in ing_str.lower():
+                filtered_items.append(item)
+        menu_items = filtered_items
 
     return render_template('menu.html', menu_items=menu_items)

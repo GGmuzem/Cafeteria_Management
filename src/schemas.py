@@ -1,8 +1,16 @@
 from pydantic import BaseModel, field_validator
+from database.store import Storage
+
 class StorageCreate(BaseModel):
     name: str
     count: int
     type_of_product: str
+
+    @field_validator('name')
+    def name_must_be_unique(cls, v):
+        if Storage.query.filter_by(name=v).first():
+            raise ValueError('Товар с таким названием уже существует')
+        return v
 
     @field_validator('count')
     def count_must_be_positive(cls, v):

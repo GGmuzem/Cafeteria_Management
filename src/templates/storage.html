@@ -13,6 +13,33 @@
 <body>
     <h1>Склад продуктов</h1>
     <a href="/menu">Вернуться в меню</a>
+
+    <!-- Вывод сообщений (flash) -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul style="color: blue;">
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Форма добавления (только для админа) -->
+    {% if current_user.role == 'admin' %}
+    <div style="margin: 20px 0; padding: 15px; border: 1px solid #ccc; background: #f9f9f9;">
+        <h3>Добавить новый товар</h3>
+        <form method="POST" action="/storage">
+            <input type="text" name="name" placeholder="Название" required>
+            <input type="number" name="count" placeholder="Количество" required>
+            <select name="type_of_product">
+                <option value="продукт">Продукт</option>
+                <option value="блюдо">Блюдо</option>
+            </select>
+            <button type="submit">Добавить</button>
+        </form>
+    </div>
+    {% endif %}
     
     <table>
         <thead>
@@ -21,6 +48,9 @@
                 <th>Название</th>
                 <th>Количество</th>
                 <th>Тип</th>
+                {% if current_user.role == 'admin' %}
+                <th>Действия</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -30,10 +60,16 @@
                 <td>{{ item.name }}</td>
                 <td>{{ item.count }}</td>
                 <td>{{ item.type_of_product }}</td>
+                {% if current_user.role == 'admin' %}
+                <td>
+                    <a href="/storage/edit/{{ item.id }}">Ред.</a> | 
+                    <a href="/storage/delete/{{ item.id }}" onclick="return confirm('Удалить?');" style="color: red;">Удал.</a>
+                </td>
+                {% endif %}
             </tr>
             {% else %}
             <tr>
-                <td colspan="4">Склад пуст.</td>
+                <td colspan="{% if current_user.role == 'admin' %}5{% else %}4{% endif %}">Склад пуст.</td>
             </tr>
             {% endfor %}
         </tbody>

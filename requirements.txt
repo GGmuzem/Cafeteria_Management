@@ -6,4 +6,3 @@ python-dotenv==1.2.1
 flask-migrate==4.0.6
 pydantic==2.10.3
 pydantic-settings==2.10.1
-requests
