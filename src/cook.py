@@ -1,11 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from flask_login import login_required, current_user
-from datetime import datetime
 from config import db
 from database.menu import Menu
 from database.store import Storage
-from database.requests import Requests
-from database.history import History
 
 
 cook_bp = Blueprint("cook", __name__, url_prefix="/cook")
@@ -49,55 +46,15 @@ def cook_panel():
             db.session.add(dish)
             db.session.commit()
 
-            history = History(
-                user=current_user.id,
-                type_of_transaction="add_menu",
-                amount=price,
-                date=datetime.now()
-            )
-
-            db.session.add(history)
-            db.session.commit()
-
-            return redirect(url_for("cook.cook_panel"))
-
-
-        if action == "create_request": #Создание заявки
-            product = request.form.get("product")
-            amount = request.form.get("amount")
-
-            new_request = Requests(
-                user=current_user.id,
-                product=product,
-                amount=int(amount),
-                status="pending",
-                date=datetime.now()
-            )
-
-            db.session.add(new_request)
-            db.session.commit()
-
-            history = History(
-                user=current_user.id,
-                type_of_transaction="create_request",
-                amount=amount,
-                date=datetime.now()
-            )
-
-            db.session.add(history)
-            db.session.commit()
-
             return redirect(url_for("cook.cook_panel"))
 
     menu = Menu.query.all()
     storage = Storage.query.all()
-    history = History.query.order_by(History.date.desc()).all()
 
     return render_template(
         "cook/index.html",
         menu=menu,
         storage=storage,
-        history=history
     )
 
 @cook_bp.route("/edit_menu/<int:id>", methods=["GET", "POST"])

@@ -23,6 +23,9 @@
     <textarea name="composition" rows="4" cols="50" required>
     </textarea><br><br>
 
+    <label>Вес (г):</label><br>
+    <input type="number" name="weight" placeholder="Например: 250"><br><br>
+
     <button type="submit">Добавить блюдо</button>
 </form>
 
@@ -35,7 +38,15 @@
             <li>
                 <b>{{ dish.name }}</b> —
                 {{ dish.price }} руб.<br>
-                Состав: {{ dish.composition }}
+                Состав: 
+                {% if dish.composition is mapping %}
+                    {{ dish.composition.get('ingredients', []) | join(', ') }}
+                    {% if dish.composition.get('weight') %}
+                        <br>Вес: {{ dish.composition.get('weight') }} г.
+                    {% endif %}
+                {% else %}
+                    {{ dish.composition }}
+                {% endif %}
             </li>
         {% endfor %}
     </ul>
@@ -49,48 +60,12 @@
 {% if storage %}
     <ul>
         {% for item in storage %}
-            <li>{{ item.name }} — {{ item.amount }}</li>
+            <li>{{ item.name }} — {{ item.count }}</li>
         {% endfor %}
     </ul>
 {% else %}
     <p>Склад пуст.</p>
 {% endif %}
-
-
-<hr>
-<h2>Создать заявку на пополнение</h2>
-<form method="post">
-    <input type="hidden" name="action" value="create_request">
-    <label>Продукт:</label><br>
-    <input type="text" name="product" required><br><br>
-    <label>Количество:</label><br>
-    <input type="number" name="amount" required><br><br>
-    <button type="submit">Отправить заявку</button>
-</form>
-
-
-<hr>
-<h2>История</h2>
-{% if history %}
-    <table border="1" cellpadding="5">
-        <tr>
-            <th>Дата</th>
-            <th>Тип</th>
-            <th>Сумма / Кол-во</th>
-        </tr>
-
-        {% for h in history %}
-        <tr>
-            <td>{{ h.date }}</td>
-            <td>{{ h.type_of_transaction }}</td>
-            <td>{{ h.amount }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-{% else %}
-    <p>История пуста.</p>
-{% endif %}
-
 
 <hr>
 <a href="/logout">Выйти</a>
