@@ -24,52 +24,53 @@
         <td>{{ r.amount }}</td>
         <td>{{ r.status }}</td>
         <td>
-            <form method="post" style="display:inline">
-                <input type="hidden" name="action" value="approve_request">
-                <input type="hidden" name="request_id" value="{{ r.id }}">
-                <button>✔ Одобрить</button>
-            </form>
+            {% if edit_id == r.id %}
+                <!-- Форма редактирования -->
+                <form method="post">
+                    <input type="hidden" name="action" value="edit_request">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
 
-            <form method="post" style="display:inline">
-                <input type="hidden" name="action" value="reject_request">
-                <input type="hidden" name="request_id" value="{{ r.id }}">
-                <button>✖ Отклонить</button>
-            </form>
+                    <input name="product" value="{{ r.product }}">
+                    <input type="number" name="amount" value="{{ r.amount }}">
+
+                    <select name="status">
+                        <option value="pending" {% if r.status == "pending" %}selected{% endif %}>pending</option>
+                        <option value="approved" {% if r.status == "approved" %}selected{% endif %}>approved</option>
+                        <option value="rejected" {% if r.status == "rejected" %}selected{% endif %}>rejected</option>
+                    </select>
+
+                    <button>Сохранить</button>
+                </form>
+
+            {% elif r.status == "pending" %}
+                <!-- Одобрение / отклонение -->
+                <form method="post" style="display:inline">
+                    <input type="hidden" name="action" value="approve_request">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
+                    <button>✓</button>
+                </form>
+
+                <form method="post" style="display:inline">
+                    <input type="hidden" name="action" value="reject_request">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
+                    <button>✕</button>
+                </form>
+
+            {% else %}
+                <!-- Кнопка "Изменить" -->
+                <form method="post">
+                    <input type="hidden" name="action" value="start_edit">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
+                    <button>Изменить</button>
+                </form>
+            {% endif %}
         </td>
     </tr>
     {% endfor %}
 </table>
 
-<!-- <hr>
+<hr>
 <h2>Пользователи</h2>
-
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Логин</th>
-        <th>Роль</th>
-        <th>Изменить роль</th>
-    </tr>
-    {% for u in users %}
-    <tr>
-        <td>{{ u.id }}</td>
-        <td>{{ u.login }}</td>
-        <td>{{ u.role }}</td>
-        <td>
-            <form method="post">
-                <input type="hidden" name="action" value="change_role">
-                <input type="hidden" name="user_id" value="{{ u.id }}">
-                <select name="role">
-                    <option value="student">student</option>
-                    <option value="cook">cook</option>
-                    <option value="admin">admin</option>
-                </select>
-                <button>Сохранить</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
-</table> -->
 
 <hr>
 <a href="/logout">Выйти</a>
