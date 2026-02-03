@@ -115,3 +115,18 @@ def delete_storage_item(id):
     else:
         flash("Товар не найден")
     return redirect(url_for('storage'))
+
+def decrease_stock(product_id: int, amount: int = 1):
+    """
+    Функция для списания 1 единицы (или amount) товара со склада.
+    Включает проверки на существование и наличие достаточного количества.
+    """
+    item = Storage.query.filter_by(id=product_id).first()
+    if not item:
+        return False, f"Товар '{product_id}' не найден на складе"
+    if item.count < amount:
+        return False, f"Недостаточно товара '{product_id}' (в наличии: {item.count})"
+    item.count -= amount
+    db.session.commit()
+    
+    return True, "Успешно списано"
