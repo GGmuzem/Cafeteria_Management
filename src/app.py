@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_login import LoginManager, login_required, current_user, logout_user, login_user
 from config import app, db, login_manager
 from database.users import User
+from database.notifications import Notification
 from auth import login_user_db, register_user
 from cook import cook_bp 
 
@@ -87,4 +88,3 @@ def logout():
 if __name__ == "__main__":
     create_db()
     app.run(debug=True)
-

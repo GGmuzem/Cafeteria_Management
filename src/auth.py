@@ -1,6 +1,7 @@
 from flask import Flask, flash, redirect, url_for
 from config import app, db
 from database.users import User
+from database.notifications import Notification
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import login_user
 
@@ -8,6 +9,17 @@ def login_user_db(login, password):
     user = User.query.filter_by(login=login).first()
     if user and check_password_hash(user.password, password):
         login_user(user)
+        
+        # Отправка уведомления о входе
+        if user.email:
+            notif = Notification(
+                email=user.email,
+                subject="Вход в аккаунт",
+                message="Выполнен вход в ваш аккаунт в системе столовой."
+            )
+            db.session.add(notif)
+            db.session.commit()
+            
         return True
     return False
 

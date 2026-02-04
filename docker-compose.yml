@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src/database/cafeteria.db:/app/src/database/cafeteria.db
+
+  worker:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: ["python", "src/worker.py"]
+    volumes:
+      - ./src/database/cafeteria.db:/app/src/database/cafeteria.db

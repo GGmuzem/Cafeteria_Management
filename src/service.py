@@ -7,6 +7,9 @@
 
 from database.store import Storage
 from config import db
+from database.users import User
+from database.wallets import Wallet
+from database.notifications import Notification
 from schemas import StorageCreate, StorageDelete
 from pydantic import ValidationError
 
@@ -130,3 +133,30 @@ def decrease_stock(product_id: int, amount: int = 1):
     db.session.commit()
     
     return True, "Успешно списано"
+
+def send_balance_notification(user_id: int, amount: int, description: str = "Транзакция"):
+    """
+    Создает уведомление о транзакции.
+    """
+    user = db.session.get(User, user_id)
+    if not user:
+        return False, "Пользователь не найден"
+
+    # Ищем кошелек по зашифрованному номеру (связь через user.wallet)
+    wallet = db.session.get(Wallet, user.wallet)
+    current_balance = wallet.money if wallet else 0
+    
+    # Создаем уведомление
+    if user.email:
+        action_type = "Пополнение" if amount > 0 else "Списание"
+        message = f"{action_type} на сумму {abs(amount)} руб. {description}. Текущий баланс: {current_balance} руб."
+        
+        notification = Notification(
+            email=user.email,
+            subject=f"Баланс: {action_type}",
+            message=message
+        )
+        db.session.add(notification)
+
+    db.session.commit()
+    return True, "Уведомление создано"
