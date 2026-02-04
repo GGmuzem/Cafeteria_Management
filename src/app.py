@@ -1,16 +1,19 @@
 from flask_sqlalchemy import SQLAlchemy
 import os, student, cook, service
-from flask import request, redirect, url_for, Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
+from flask_login import LoginManager, login_required, current_user, logout_user, login_user
 from config import app, db, login_manager
 from database.users import User
-from database.wallets import Wallet
-from database.history import History
-from database.menu import Menu
-from database.store import Storage
-from database.reviews import Reviews
-from database.requests import Requests
 from auth import login_user_db, register_user
-from flask_login import logout_user, login_user, login_required
+from cook import cook_bp 
+
+app.register_blueprint(cook_bp) #блюпринт повара
+
+
+@login_manager.user_loader #Загрузка пользователя
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 
 
 def create_db():
@@ -84,4 +87,4 @@ def logout():
 if __name__ == "__main__":
     create_db()
     app.run(debug=True)
-    
+
