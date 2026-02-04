@@ -1,6 +1,6 @@
 from config import db
 from cryptography.fernet import Fernet
-import os
+from datetime import datetime
 import secrets
 import string
 from flask_login import UserMixin

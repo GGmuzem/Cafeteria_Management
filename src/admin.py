@@ -7,21 +7,19 @@
     Изменение роли для пользователя ✅
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, Response
+from flask import Blueprint, render_template, request
 from flask_login import login_required, current_user
-import csv
-import io
 from config import db
 from database.users import User
 from database.history import History
 from database.requests import Requests
 
-admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+admin_bp = Blueprint("admin", __name__, url_prefix="/admin_requests")
 
 
 @admin_bp.route("/", methods=["GET", "POST"])
 @login_required
-def admin_panel():
+def admin_requests():
     edit_id = None
     if current_user.role != "admin": #проверка роли
         return "Доступ запрещён", 403

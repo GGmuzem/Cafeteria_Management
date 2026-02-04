@@ -8,17 +8,56 @@ from database.requests import Requests
 from database.history import History
 
 
-cook_bp = Blueprint("cook", __name__, url_prefix="/cook")
+cook_bp = Blueprint("cook", __name__, url_prefix="/cook_panel")
 
 
 @cook_bp.route("/", methods=["GET", "POST"])
 @login_required
 def cook_panel():
-    if current_user.role != "cook": #проверка роли повара
+    if current_user.role.lower() not in ("cook", "admin"):
         return "Доступ запрещён", 403
+    edit_menu = None
+    edit_menu_id = request.args.get("edit_menu_id", type=int)
 
     if request.method == "POST":
         action = request.form.get("action")
+
+        if action == "start_edit_menu":
+            edit_menu_id = int(request.form.get("menu_id"))
+            edit_menu = Menu.query.get(edit_menu_id)
+        
+        elif action == "save_menu":
+            menu_id = int(request.form.get("menu_id"))
+            dish = Menu.query.get(menu_id)
+            if not dish:
+                return "Блюдо не найдено", 404
+            
+            name = request.form.get("name", "").strip()
+            price_str = request.form.get("price", "").strip()
+            composition = request.form.get("composition", "").strip()
+
+            if not name or not price_str or not composition:
+                return "Заполните все поля", 400
+            
+            try:
+                price = int(price_str)
+            except ValueError:
+                return "Цена должна быть числом", 400
+
+            dish.name = name
+            dish.price = price
+            dish.composition = composition
+
+            db.session.commit()
+            return redirect(url_for("cook.cook_panel"))
+        
+        elif action == "delete_menu":
+            menu_id = request.form.get("menu_id")
+            dish = Menu.query.get(menu_id)
+
+            db.session.delete(dish)
+            db.session.commit()
+            return redirect(url_for("cook.cook_panel"))
 
         if action == "add_menu": #Добавление блюда
             name = request.form.get("name") #название блюда
@@ -42,17 +81,6 @@ def cook_panel():
 
             db.session.add(dish) #выделение в бд места под новое блюдо
             db.session.commit() #сохранение в бд
-
-            # history = History( 
-            #     user=current_user.id,
-            #     type_of_transaction="add_menu",
-            #     amount=price,
-            #     date=datetime.now()
-            # )
-
-            # db.session.add(history)
-            # db.session.commit()
-
             return redirect(url_for("cook.cook_panel"))
 
 
@@ -70,21 +98,11 @@ def cook_panel():
 
             db.session.add(new_request) #выделение в бд места под новую заяву
             db.session.commit() #сохранение заявки в бд
-
-            # history = History(
-            #     user=current_user.id,
-            #     type_of_transaction="create_request",
-            #     amount=amount,
-            #     date=datetime.now()
-            # )
-
-            # db.session.add(history)
-            # db.session.commit()
-
             return redirect(url_for("cook.cook_panel"))
 
     menu = Menu.query.all()
     storage = Storage.query.all()
     history = History.query.order_by(History.date.desc()).all()
+    my_requests = Requests.query.filter_by(user=current_user.id).order_by(Requests.date.desc()).all()
 
-    return render_template("cook/index.html", menu=menu, storage=storage, history=history)
+    return render_template("cook/index.html", menu=menu, edit_menu=edit_menu, edit_menu_id=edit_menu_id, storage=storage, history=history, my_requests=my_requests)
