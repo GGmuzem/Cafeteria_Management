@@ -29,9 +29,21 @@ def register():
         return "Ошибка регистрации"
     return render_template("auth/register.html")
 
-@auth_bp.route("/account")
+@auth_bp.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
+    if request.method == "POST":
+        if "email" in request.form:
+            current_user.email = request.form.get("email")
+        if "allergen" in request.form:
+            current_user.allergen = request.form.get("allergen")
+        if "preferences" in request.form:
+            current_user.preferences = request.form.get("preferences")
+        
+        from config import db
+        db.session.commit()
+        return redirect(url_for("auth.account"))
+
     return render_template(
         "auth/account.html",
         user=current_user,
