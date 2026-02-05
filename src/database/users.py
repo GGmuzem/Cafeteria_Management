@@ -22,7 +22,7 @@ class User(db.Model, UserMixin):
             self.set_wallet(generated_wallet)
         else:
             self.set_wallet(wallet)
-    key = b'Z7-D8rW9xY1z2A3b4C5d6E7f8G9h0I1j2K3l4M5n6O7=' #для теста
+    key = os.getenv("KEY")
     def set_wallet(self, wallet_value): # Шифровка кошелька
         cipher_suite = Fernet(self.key)
         encrypted_text = cipher_suite.encrypt(str(wallet_value).encode('utf-8'))
