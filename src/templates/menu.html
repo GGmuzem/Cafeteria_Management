@@ -1,24 +1,29 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Меню столовой</title>
 </head>
+
 <body>
     <h1>Наше Меню</h1>
-    
+
     {% if current_user.role in ['cook', 'admin'] %}
     <div style="margin-bottom: 15px;">
-        <a href="/cook" style="padding: 10px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">👨‍🍳 Панель повара</a>
+        <a href="/cook"
+            style="padding: 10px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">👨‍🍳
+            Панель повара</a>
     </div>
     {% endif %}
-    
+
     <!-- Форма фильтрации -->
     <div style="margin-bottom: 20px; padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd;">
         <form action="/menu" method="get">
             <label for="allergen">Исключить аллерген (например, лук):</label>
-            <input type="text" id="allergen" name="allergen" value="{{ request.args.get('allergen', '') }}" placeholder="Введите ингредиент">
+            <input type="text" id="allergen" name="allergen" value="{{ request.args.get('allergen', '') }}"
+                placeholder="Введите ингредиент">
             <button type="submit">Применить фильтр</button>
             <a href="/menu" style="margin-left: 10px;">Сбросить</a>
         </form>
@@ -26,33 +31,40 @@
 
     <div class="menu-container">
         {% for item in menu_items %}
-            <div class="menu-item" style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
-                <h3>{{ item.name }}</h3>
-                
-                <p>Состав: 
-                    {% if item.composition is mapping %}
-                        {{ item.composition.get('ingredients', []) | join(', ') }}
-                    {% else %}
-                        {{ item.composition }}
-                    {% endif %}
-                </p>
-                
-                {% if item.composition is mapping and item.composition.get('weight') %}
-                    <p>Вес: {{ item.composition.weight }} г.</p>
-                {% endif %}
-                
-                <p><strong>Цена:</strong> {{ item.price }} руб.</p>
+        <div class="menu-item" style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+            <h3>{{ item.name }}</h3>
 
-                {% if current_user.role in ['cook', 'admin'] %}
-                    <hr>
-                    <a href="/cook/edit_menu/{{ item.id }}">✏️ Редактировать</a> | 
-                    <a href="/cook/delete_menu/{{ item.id }}" onclick="return confirm('Вы уверены?');" style="color: red;">🗑️ Удалить</a>
+            <p>Состав:
+                {% if item.composition is mapping %}
+                {{ item.composition.get('ingredients', []) | join(', ') }}
+                {% else %}
+                {{ item.composition }}
                 {% endif %}
+            </p>
+
+            {% if item.composition is mapping and item.composition.get('weight') %}
+            <p>Вес: {{ item.composition.weight }} г.</p>
+            {% endif %}
+
+            <p><strong>Цена:</strong> {{ item.price }} руб.</p>
+
+            <div style="margin-top: 10px;">
+                <a href="{{ url_for('menu_reviews', menu_id=item.id) }}"
+                    style="text-decoration: none; color: #007bff;">💬 Отзывы</a>
             </div>
+
+            {% if current_user.role in ['cook', 'admin'] %}
+            <hr>
+            <a href="/cook/edit_menu/{{ item.id }}">✏️ Редактировать</a> |
+            <a href="/cook/delete_menu/{{ item.id }}" onclick="return confirm('Вы уверены?');" style="color: red;">🗑️
+                Удалить</a>
+            {% endif %}
+        </div>
         {% else %}
-            <p>Меню пока пусто.</p>
+        <p>Меню пока пусто.</p>
         {% endfor %}
     </div>
     <a href="/account">Вернуться в профиль</a>
 </body>
+
 </html>

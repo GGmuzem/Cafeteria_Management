@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отзывы - {{ menu_item.name }}</title>
+</head>
+
+<body>
+    <h1>Отзывы о блюде: {{ menu_item.name }}</h1>
+    <p>Цена: {{ menu_item.price }} руб.</p>
+    <a href="{{ url_for('menu') }}">← Вернуться к меню</a>
+    <hr>
+
+    <h3>Оставить отзыв</h3>
+    <form method="POST">
+        <label for="rating">Оценка:</label>
+        <select name="rating" id="rating" required>
+            <option value="5">5 - Отлично</option>
+            <option value="4">4 - Хорошо</option>
+            <option value="3">3 - Нормально</option>
+            <option value="2">2 - Плохо</option>
+            <option value="1">1 - Ужасно</option>
+        </select>
+        <br><br>
+        <label for="comment">Комментарий:</label><br>
+        <textarea name="comment" id="comment" rows="4" cols="50" required
+            placeholder="Напишите ваш отзыв здесь..."></textarea>
+        <br><br>
+        <button type="submit">Отправить отзыв</button>
+    </form>
+
+    <hr>
+    <h3>Отзывы ({{ reviews|length }})</h3>
+    {% if reviews %}
+    {% for review in reviews %}
+    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+        <p><strong>Оценка: {{ review.rating }}/5</strong></p>
+        <p>{{ review.review }}</p>
+        <small style="color: grey;">Пользователь {{ review.user }} | {{ review.date.strftime('%d.%m.%Y %H:%M')
+            }}</small>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>Отзывов пока нет. Будьте первым!</p>
+    {% endif %}
+</body>
+
+</html>
