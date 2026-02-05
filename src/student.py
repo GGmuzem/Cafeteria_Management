@@ -8,10 +8,10 @@
     Просмотр истории заказов и пополнения кошелька
     
 """
+from datetime import datetime 
 from src.config import db
 from src.database.history import History
 from src.database.wallets import Wallet
-
 class StudentService:
     @staticmethod
     def _get_or_create_wallet(user):
@@ -45,7 +45,7 @@ class StudentService:
         # Меняем баланс
         wallet.money += amount
 
-        record = History(student_id=user.id, action="Пополнение", amount=amount)#запись в историю
+        record = History(user=user.id, type_of_transaction="Пополнение", amount=amount, date=datetime.now())#запись в историю
         db.session.add(record)
 
         db.session.commit() # Сохраняем в БД
@@ -62,7 +62,7 @@ class StudentService:
         # Проверяем, хватает ли денег
         if wallet.money >= amount:
             wallet.money -= amount
-            record = History(student_id=user.id, action="Снятие", amount=amount)#запись в историю
+            record = History(user=user.id, type_of_transaction="Снятие", amount=amount, date=datetime.now())#запись в историю
             db.session.add(record)
             db.session.commit() # Сохраняем в БД
             return True, f"Успешно снято {amount} ₽"

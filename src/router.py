@@ -5,18 +5,20 @@
     Вызывает логику: Он не считает деньги и не проверяет продукты сам, он передает эту задачу в service.py.
     Возвращает ответ: Отдает данные обратно на фронтенд в формате, описанном в schemas.py.
 """
+import os
 from flask import Blueprint, render_template, request, redirect, url_for
 from flask_login import login_required, current_user
 from src.student import StudentService
 from src.schemas import StudentSchema
 from src.database.users import User
 from src.config import db
+from src.database.history import History
 
-
-
+current_dir = os.path.dirname(os.path.abspath(__file__)) # Папка src
+root_dir = os.path.dirname(current_dir) # Корневая папка проекта
+template_dir = os.path.join(root_dir, 'frontend', 'templates') # Путь к frontend/templates
 # Создаем чертеж для путей, связанных с кошельком
-wallet_bp = Blueprint('wallet_bp', __name__)
-
+wallet_bp = Blueprint('wallet_bp', __name__, template_folder=template_dir)
 @wallet_bp.route("/wallet", methods=["GET", "POST"])
 @login_required
 def wallet_page():
@@ -59,9 +61,12 @@ def wallet_page():
     # Запрашиваем актуальные данные, чтобы показать пользователю
     balance, card_last_4 = StudentService.get_wallet_info(user)
     
+    history_records = History.query.filter_by(user=user.id).order_by(History.date.desc()).all()#запрос истории 
+
     # Отдаем HTML и вставляем туда цифры
-    return render_template("wallet.html",
+    return render_template("student/history.html",
                          balance=balance, 
                          card_number=card_last_4,
                          message=message,
-                         message_type=message_type)
+                         message_type=message_type,
+                         history=history_records)
