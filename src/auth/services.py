@@ -1,5 +1,4 @@
-from flask import Flask, flash, redirect, url_for
-from config import app, db
+from config import db
 from database.users import User
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import login_user

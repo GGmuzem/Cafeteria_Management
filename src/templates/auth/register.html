@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход</title>
+    <title>Регистрация</title>
 </head>
 
 <body>
-    <h2>Вход в систему</h2>
+    <h2>Регистрация</h2>
 
     {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -20,7 +20,7 @@
     {% endif %}
     {% endwith %}
 
-    <form method="POST" action="/login">
+    <form method="POST" action="{{ url_for('auth.register') }}">
         <div>
             <label for="login">Логин:</label>
             <input type="text" id="login" name="login" required>
@@ -31,8 +31,18 @@
             <input type="password" id="password" name="password" required>
         </div>
         <br>
-        <button type="submit">Войти</button>
+        <div>
+            <label for="confirm_password">Повторите пароль:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+        </div>
+        <br>
+        <!-- По умолчанию регистрируем как студента, но можно добавить выбор -->
+        <input type="hidden" name="role" value="student">
+
+        <button type="submit">Зарегистрироваться</button>
     </form>
+    <br>
+    <a href="{{ url_for('auth.login') }}">Уже есть аккаунт? Войти</a>
 </body>
 
 </html>

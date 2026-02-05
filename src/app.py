@@ -10,9 +10,15 @@ from database.menu import Menu
 from database.store import Storage
 from database.reviews import Reviews
 from database.requests import Requests
-from auth import login_user_db, register_user
+from auth import auth_bp
+# from admin import admin_bp # Import admin blueprint
+# from cook import cook_bp # Import cook blueprint
 from flask_login import logout_user, login_user, login_required, current_user
 from functools import wraps
+
+# app.register_blueprint(cook_bp) #блюпринт повара
+# app.register_blueprint(admin_bp) #блюпринт админа
+app.register_blueprint(auth_bp) #блюпринт авторизации
 
 
 def create_db():
@@ -36,7 +42,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or current_user.role != 'admin':
             flash("У вас нет прав доступа к этой странице.")
-            return redirect(url_for('account'))
+            return redirect(url_for('auth.account'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -51,35 +57,10 @@ def index():
     return render_template("index.html")
 
 # Страница входа в аккаунт
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        login_data = request.form.get("login")
-        password_data = request.form.get("password")
 
-        if login_user_db(login_data, password_data):
-            return redirect(url_for("account"))
-        else:
-            return "Неверный логин или пароль"
-
-    return render_template("login.html")
 
 # Страница регистрации
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        login_data = request.form.get("login")
-        password_data = request.form.get("password")
-        password_repeat = request.form.get("confirm_password")
 
-        user = register_user(login_data, password_data, password_repeat)
-
-        if user:
-            login_user(user)
-            return redirect(url_for("account"))
-        else:
-            return "Ошибка регистрации"
-    return render_template("register.html")
 
 @app.route("/admin-panel")
 @login_required
@@ -123,17 +104,9 @@ def admin_delete_user():
         
     return redirect(url_for("admin_panel"))
 
-# Страница профиля
-@app.route("/account")
-@login_required
-def account():
-    return render_template("account.html")
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user() # Удаляет сессию
-    return redirect(url_for('login'))
+
+
 
 if __name__ == "__main__":
     create_db()
