@@ -9,6 +9,7 @@
     
 """
 from src.config import db
+from src.database.history import History
 from src.database.wallets import Wallet
 
 class StudentService:
@@ -43,6 +44,10 @@ class StudentService:
         
         # Меняем баланс
         wallet.money += amount
+
+        record = History(student_id=user.id, action="Пополнение", amount=amount)#запись в историю
+        db.session.add(record)
+
         db.session.commit() # Сохраняем в БД
         
         return True, f"Баланс успешно пополнен на {amount} ₽"
@@ -57,6 +62,8 @@ class StudentService:
         # Проверяем, хватает ли денег
         if wallet.money >= amount:
             wallet.money -= amount
+            record = History(student_id=user.id, action="Снятие", amount=amount)#запись в историю
+            db.session.add(record)
             db.session.commit() # Сохраняем в БД
             return True, f"Успешно снято {amount} ₽"
         else:
