@@ -35,18 +35,21 @@ def cook_panel():
             name = request.form.get("name", "").strip()
             price_str = request.form.get("price", "").strip()
             composition = request.form.get("composition", "").strip()
+            weight_str = request.form.get("weight", "").strip()
 
             if not name or not price_str or not composition:
                 return "Заполните все поля", 400
             
             try:
                 price = int(price_str)
+                weight = int(weight_str)
             except ValueError:
                 return "Цена должна быть числом", 400
 
             dish.name = name
             dish.price = price
             dish.composition = composition
+            dish.weight = weight
 
             db.session.commit()
             return redirect(url_for("cook.cook_panel"))
@@ -61,8 +64,15 @@ def cook_panel():
 
         if action == "add_menu": #Добавление блюда
             name = request.form.get("name") #название блюда
-            price = request.form.get("price") #цена блюда
+            price_str = request.form.get("price") #цена блюда
             composition_raw = request.form.get("composition") #состав блюда
+            weight_str = request.form.get("weight", "").strip()
+
+            try:
+                price = int(price_str)
+                weight = int(weight_str) if weight_str else None  # None, если не указано
+            except ValueError:
+                return "Цена и вес должны быть числами", 400
 
             if not name or not price or not composition_raw: #проверка на заполненность всех полей (блюдо, цена, состав)
                 return "Заполните все поля", 400
@@ -75,8 +85,9 @@ def cook_panel():
 
             dish = Menu( #создание нового блюда в меню
                 name=name, #название блюда
-                price=int(price), #цена блюда
-                composition=", ".join(composition_list) #состав блюда
+                price=price, #цена блюда
+                composition=", ".join(composition_list), #состав блюда
+                weight=weight #вес блюда
             )
 
             db.session.add(dish) #выделение в бд места под новое блюдо

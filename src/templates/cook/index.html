@@ -23,6 +23,9 @@
     <textarea name="composition" rows="4" cols="50" required>
     </textarea><br><br>
 
+    <label>Вес (г):</label><br>
+    <input type="number" name="weight" min="1">
+
     <button type="submit">Добавить блюдо</button>
 </form>
 
@@ -30,9 +33,12 @@
 <hr>
 <h2>Текущее меню</h2>
 <ul>
+
+
+    
 {% for m in menu %}
     <li>
-        <b>{{ m.name }}</b> — {{ m.price }} руб.<br>
+        <b>{{ m.name }}</b> {% if m.weight %}({{ m.weight }} г){% endif %} — {{ m.price }} руб.<br>
         Состав: {{ m.composition }}
         {% if edit_menu %}
         <form method="post">
@@ -42,6 +48,7 @@
             <input name="name" value="{{ edit_menu.name }}">
             <input name="price" value="{{ edit_menu.price }}">
             <input name="composition" value="{{ edit_menu.composition }}">
+            <input type="number" name="weight" min="1" step="1" value="{{ m.weight if m.weight else '' }}" placeholder="вес в г">
 
             <button type="submit">Сохранить</button>
         </form>
