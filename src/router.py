@@ -13,6 +13,8 @@ from src.schemas import StudentSchema
 from src.database.users import User
 from src.config import db
 from src.database.history import History
+from src.database.store import Storage
+
 
 current_dir = os.path.dirname(os.path.abspath(__file__)) # Папка src
 root_dir = os.path.dirname(current_dir) # Корневая папка проекта
@@ -70,3 +72,55 @@ def wallet_page():
                          message=message,
                          message_type=message_type,
                          history=history_records)
+
+@wallet_bp.route('/inventory', methods=['GET', 'POST'])
+@login_required
+def inventory_page():
+    """
+    Страница склада.
+    Показывает товары и позволяет добавлять новые (если админ/повар).
+    """
+    # 1. Добавление товара
+    if request.method == 'POST':
+        name = request.form.get('name')
+        quantity = request.form.get('quantity')
+        price = request.form.get('price')
+        category = request.form.get('category')
+
+        # Проверка, что поля заполнены
+        if name and quantity and price:
+            try:
+                new_item = Storage(
+                    name=name, 
+                    quantity=int(quantity), 
+                    price=int(price),
+                    category=category
+                )
+                db.session.add(new_item)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print(f"Ошибка добавления товара: {e}")
+        
+        # Перезагружаем страницу, чтобы сбросить форму
+        return redirect(url_for('wallet_bp.inventory_page'))
+
+    # 2. Отображение списка
+    items = Storage.query.all()
+    
+
+    return render_template('cook/inventory.html', items=items)
+
+
+@wallet_bp.route('/inventory/delete/<int:item_id>')
+@login_required
+def delete_inventory_item(item_id):
+    """
+    Удаление товара по ID
+    """
+    item = Storage.query.get(item_id)
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+    
+    return redirect(url_for('wallet_bp.inventory_page'))

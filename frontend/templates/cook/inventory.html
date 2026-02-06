@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Склад Повара</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; background-color: #f8f9fa; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #343a40; color: white; }
+        input { padding: 8px; margin-right: 5px; border-radius: 4px; border: 1px solid #ccc; width: 140px;}
+        .btn-add { background: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
+        .btn-del { color: #dc3545; text-decoration: none; font-weight: bold; }
+        .form-group { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .nav-link { text-decoration: none; color: #007bff; margin-right: 15px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Управление складом столовой</h2>
+            <a href="{{ url_for('wallet_bp.wallet_page') }}" class="nav-link">← В кошелек</a>
+        </div>
+
+        <div class="form-group">
+            <h3>Добавить товар</h3>
+            <form action="{{ url_for('wallet_bp.inventory_page') }}" method="POST">
+                
+                <input type="text" name="name" placeholder="Продукт (Напр. Булка)" required>
+                
+                <input type="number" name="quantity" placeholder="Кол-во" required min="1">
+                
+                <input type="number" name="price" placeholder="Цена (₽)" required min="1">
+
+                <input type="text" name="category" placeholder="Категория (Еда)" required>
+                
+                <button type="submit" class="btn-add">Добавить</button>
+            </form>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Количество</th>
+                    <th>Цена</th> <th>Категория</th> <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.quantity }} шт.</td>
+                    <td>{{ item.price }} ₽</td>
+                    <td>{{ item.category }}</td>
+                    <td>
+                        <a href="{{ url_for('wallet_bp.delete_inventory_item', item_id=item.id) }}" 
+                           class="btn-del" 
+                           onclick="return confirm('Вы уверены, что хотите удалить {{ item.name }}?')">
+                           Удалить
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if not items %}
+            <p style="text-align: center; color: #888; margin-top: 20px;">На складе пока пусто.</p>
+        {% endif %}
+
+    </div>
+</body>
+</html>
