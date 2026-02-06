@@ -112,15 +112,7 @@ def history_operation():
     return render_template("history_operation.html", history=his)
 
 
-# Страница меню
-@app.route("/menu")
-@login_required
-def menu():
-    all_food = Menu.query.all()
-    return render_template("menu.html", menu=all_food)
-
-
-# Страница покупки
+# Страница покупки(переход обратно в меню)
 @app.route("/buy_food/<int:food_id>")
 @login_required
 def buy_food(food_id):
