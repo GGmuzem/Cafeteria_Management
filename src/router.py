@@ -147,7 +147,7 @@ def approve_request():
 
     return redirect(url_for('wallet_bp.inventory_page'))
 
-
+#списание вручную (для админа)
 @wallet_bp.route('/inventory/delete/<int:item_id>')
 @login_required
 def delete_inventory_item(item_id):
@@ -156,3 +156,37 @@ def delete_inventory_item(item_id):
         db.session.delete(item)
         db.session.commit()
     return redirect(url_for('wallet_bp.inventory_page'))
+
+# Страница меню (где студент видит товары)
+@wallet_bp.route('/menu', methods=['GET'])
+@login_required
+def menu_page():
+    # Показываем только те товары, которых не 0
+    items = Storage.query.filter(Storage.quantity > 0).all()
+    return render_template('student/menu.html', items=items)
+
+# Удаление со склада
+@wallet_bp.route('/buy/<int:item_id>', methods=['POST'])
+@login_required
+def buy_product(item_id):
+    # 1. Ищем товар на складе
+    item = Storage.query.get(item_id)
+    
+    if not item:
+        return "Товар не найден", 404
+
+    # 2. Проверяем, есть ли он в наличии
+    if item.quantity <= 0:
+        return "Товар закончился", 400
+
+    # 3. Пробуем списать деньги
+    user = current_user
+    success, msg = StudentService.buy_item(user, item.name, item.price)
+
+    if success:
+        # 4. Если деньги списались — уменьшаем количество на складе
+        item.quantity -= 1
+        db.session.commit()
+    
+    # Возвращаемся в меню с сообщением
+    return redirect(url_for('wallet_bp.menu_page'))
