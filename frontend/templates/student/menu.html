@@ -32,7 +32,8 @@
         {% for item in items %}
         <div class="card">
             <h3>{{ item.name }}</h3>
-            <p style="color: #777;">Осталось: {{ item.quantity }} шт.</p>
+            <p style="color: #777;">Осталось: {{ item.count }} шт.</p>
+            
             <div class="price">{{ item.price }} ₽</div>
             
             <form action="{{ url_for('wallet_bp.buy_product', item_id=item.id) }}" method="POST">

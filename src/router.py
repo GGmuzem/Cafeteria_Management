@@ -104,25 +104,30 @@ def procurement_page():
                 print(f"Ошибка: {e}")
                 
         return redirect(url_for('wallet_bp.procurement_page'))
-
-    all_requests = Requests.query.all()
-    # Используем шаблон повара 
+    
+    all_requests = Requests.query.order_by(Requests.date.desc()).all()
     return render_template('cook/procurement.html', requests=all_requests)
 
 
 # страница администратора для управления инвентарем
-@wallet_bp.route('/inventory', methods=['GET'])
+@wallet_bp.route('/admin/requests', methods=['GET'])
 @login_required
-def inventory_page():
-    items = Storage.query.all()
-    requests = Requests.query.all()
-    return render_template('store/inventory.html', items=items, requests=requests)
+def admin_page():
+    pending_requests = Requests.query.filter_by(status="Ожидает").all()
+    return render_template('admin/requests.html', requests=pending_requests)
+
+
+@wallet_bp.route('/admin/requests', methods=['GET'])
+@login_required
+def requests_page():
+    all_requests = Requests.query.all()
+    return render_template('admin/requests.html', requests=all_requests)
 
 
 @wallet_bp.route('/requests/approve', methods=['POST'])
 @login_required
 def approve_request():
-    # Получаем данные из скрытой формы в inventory.html
+    # Получаем данные 
     req_id = request.form.get('req_id')
     price_val = request.form.get('price_for_sell') # <--- ВОТ ТУТ МЫ ПОЛУЧАЕМ ЦЕНУ
 
@@ -132,37 +137,51 @@ def approve_request():
             # Создаем товар в Storage (тут цена обязательна)
             new_item = Storage(
                 name=req.product,
-                quantity=req.amount,
+                count=req.amount,
                 price=int(price_val), # Берем цену, которую ввел админ
-                category="Еда"
+                type_of_product="Еда"
             )
             
             try:
                 db.session.add(new_item)
-                db.session.delete(req) # Удаляем заявку
+                req.status = "Одобрено"
                 db.session.commit()
             except Exception as e:
                 db.session.rollback()
                 print(f"Ошибка одобрения: {e}")
 
-    return redirect(url_for('wallet_bp.inventory_page'))
+    return redirect(url_for('wallet_bp.requests_page'))
+
+@wallet_bp.route('/requests/delete/<int:req_id>')
+@login_required
+def delete_request(req_id):
+    """
+    Отклонение (удаление) заявки без добавления на склад.
+    """
+    req = Requests.query.get(req_id)
+    if req:
+        req.status = "Отклонено"
+        db.session.commit()
+    
+    # Возвращаем на страницу заявок
+    return redirect(url_for('wallet_bp.requests_page'))
 
 #списание вручную (для админа)
-@wallet_bp.route('/inventory/delete/<int:item_id>')
+@wallet_bp.route('/requests/delete/<int:item_id>')
 @login_required
-def delete_inventory_item(item_id):
+def delete_admin_item(item_id):
     item = Storage.query.get(item_id)
     if item:
         db.session.delete(item)
         db.session.commit()
-    return redirect(url_for('wallet_bp.inventory_page'))
+    return redirect(url_for('wallet_bp.requests_page'))
 
 # Страница меню (где студент видит товары)
 @wallet_bp.route('/menu', methods=['GET'])
 @login_required
 def menu_page():
     # Показываем только те товары, которых не 0
-    items = Storage.query.filter(Storage.quantity > 0).all()
+    items = Storage.query.filter(Storage.count > 0).all()
     return render_template('student/menu.html', items=items)
 
 # Удаление со склада
@@ -176,7 +195,7 @@ def buy_product(item_id):
         return "Товар не найден", 404
 
     # 2. Проверяем, есть ли он в наличии
-    if item.quantity <= 0:
+    if item.count <= 0:
         return "Товар закончился", 400
 
     # 3. Пробуем списать деньги
@@ -185,7 +204,7 @@ def buy_product(item_id):
 
     if success:
         # 4. Если деньги списались — уменьшаем количество на складе
-        item.quantity -= 1
+        item.count -= 1
         db.session.commit()
     
     # Возвращаемся в меню с сообщением
