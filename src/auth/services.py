@@ -29,7 +29,5 @@ def register_user(login, password, password_repeat):
             return new_user
         except Exception as e:
             db.session.rollback()
-            db.session.rollback()
             print(f'Error saving to database: {e}')
-            return False
             return False
