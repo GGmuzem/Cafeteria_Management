@@ -28,13 +28,27 @@ def create_db():
         db_path = uri.replace('sqlite:///', '')
         
         if not os.path.exists(db_path):
-            print(f"Создание базы данных по пути: {db_path}")
+            print(f"Creating database at: {db_path}")
             with app.app_context():
                 db.create_all()
-            print("База данных успешно создана!")
+            print("Database successfully created!")
     else:
         with app.app_context():
             db.create_all()
+
+    # Создаем админа по умолчанию если его нет (проверяем всегда)
+    with app.app_context():
+        # Убедимся, что таблицы существуют (если файл был, но таблицы не созданы)
+        db.create_all()
+        
+        existing_admin = User.query.filter_by(login="admin").first()
+        if not existing_admin:
+            print("Creating default admin user...")
+            hashed_password = generate_password_hash("admin", method='pbkdf2:sha256')
+            new_admin = User(login="admin", password=hashed_password, role="admin", wallet=None)
+            db.session.add(new_admin)
+            db.session.commit()
+            print("Admin created: login=admin, password=admin")
 
 # Декоратор для проверки прав доступа к страницам администратора
 def admin_required(f):
