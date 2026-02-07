@@ -26,6 +26,12 @@
     <label>Вес (г):</label><br>
     <input type="number" name="weight" placeholder="Например: 250"><br><br>
 
+    <label>Тип меню:</label><br>
+    <select name="meal_type">
+        <option value="Завтрак">Завтрак</option>
+        <option value="Обед">Обед</option>
+    </select><br><br>
+
     <button type="submit">Добавить блюдо</button>
 </form>
 
@@ -38,6 +44,7 @@
             <li>
                 <b>{{ dish.name }}</b> —
                 {{ dish.price }} руб.<br>
+                Тип: {{ dish.meal_type }}<br>
                 Состав: 
                 {% if dish.composition is mapping %}
                     {{ dish.composition.get('ingredients', []) | join(', ') }}
