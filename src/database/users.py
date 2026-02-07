@@ -4,7 +4,8 @@ import os
 import secrets
 import string
 from flask_login import UserMixin
-
+from .wallets import Wallet
+from .history import history_operation
 # Здесь мы инициализируем и проверяем таблицу users
 
 class User(db.Model, UserMixin):
@@ -42,3 +43,51 @@ class User(db.Model, UserMixin):
             return decrypted_text.decode('utf-8')
         except Exception as e:
             return f"Error decoding: {e}"
+
+    def get_balance(self):  # Баланс
+        wallet_number = self.wallet
+        wallet = Wallet.query.filter_by(wallet_number=wallet_number).first()
+        if wallet is None:
+            wallet = Wallet(wallet_number=wallet_number, money=0)
+            db.session.add(wallet)
+            db.session.commit()
+        return wallet.money
+
+    def add_money(self, how_many_on): # Начисление денег
+        self.get_balance() # Гарантируем, что запись кошелька существует
+        wallet_number = self.wallet # Используем зашифрованный номер, как в БД
+        wallet = Wallet.query.filter_by(wallet_number=wallet_number).first()
+        hmo = float(how_many_on)
+        if hmo <= 0:
+            return
+        wallet.money += hmo
+        history = history_operation(
+                    user=self.id,
+                    type_of_transaction='Начисление',
+                    amount=how_many_on,
+                )
+        db.session.add(history)
+        db.session.commit()
+
+
+    def rem_money(self, how_many_off): # Снятие денег
+        self.get_balance() # Гарантируем, что запись кошелька существует
+        wallet_number = self.wallet # Используем зашифрованный номер, как в БД
+        wallet = Wallet.query.filter_by(wallet_number=wallet_number).first()
+        hmo = float(how_many_off)
+        if hmo <= 0:
+            return False
+        if wallet.money < hmo:
+            return False
+        wallet.money -= hmo
+        history = history_operation(
+            user=self.id,
+            type_of_transaction='Снятие',
+            amount=how_many_off,
+        )
+        db.session.add(history)
+        db.session.commit()
+        return True
+
+    def get_history_operation(self): # Получаем историю опреаций (недавних)
+        return history_operation.query.filter_by(user=self.id).order_by(history_operation.date.desc()).all()

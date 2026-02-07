@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-import os, student, cook, service
+import os, student, cook, service, admin
 from flask import Flask, render_template, request, redirect, url_for
 from flask_login import LoginManager, login_required, current_user, logout_user, login_user
 from config import app, db, login_manager
@@ -7,7 +7,8 @@ from database.users import User
 from database.notifications import Notification
 from auth import login_user_db, register_user
 from cook import cook_bp 
-
+from database.history import history_operation
+from service import buy_food_service
 app.register_blueprint(cook_bp) #блюпринт повара
 
 
@@ -16,13 +17,12 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-
 def create_db():
     # Получаем путь к базе данных из конфига
     uri = app.config['SQLALCHEMY_DATABASE_URI']
     if uri.startswith('sqlite:///'):
         db_path = uri.replace('sqlite:///', '')
-        
+
         if not os.path.exists(db_path):
             print(f"Создание базы данных по пути: {db_path}")
             with app.app_context():
@@ -32,15 +32,18 @@ def create_db():
         with app.app_context():
             db.create_all()
 
+
 # Загрузка пользователей
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
 # Главная страница
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 # Страница входа в аккаунт
 @app.route("/login", methods=["GET", "POST"])
@@ -55,6 +58,7 @@ def login():
             return "Неверный логин или пароль"
 
     return render_template("login.html")
+
 
 # Страница регистрации
 @app.route("/register", methods=["GET", "POST"])
@@ -73,17 +77,58 @@ def register():
             return "Ошибка регистрации"
     return render_template("register.html")
 
+
 # Страница профиля
-@app.route("/account")
+@app.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
+    # Создание таблицы history_operation
+    from sqlalchemy import inspect
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if 'history_operation' not in inspector.get_table_names():
+            history_operation.__table__.create(db.engine)
+
+    if request.method == "POST":
+        how_many_on = request.form.get("how_many_on")
+        how_many_off = request.form.get("how_many_off")
+        if how_many_on:
+            try:
+                current_user.add_money(float(how_many_on))
+            except:
+                pass
+        if how_many_off:
+            try:
+                current_user.rem_money(float(how_many_off))
+            except:
+                pass
+        return redirect("/account")
+
     return render_template("account.html")
+
+
+# Страница истории операций с балансом
+@app.route("/history_operation")
+@login_required
+def history_operation():
+    his = current_user.get_history_operation()
+    return render_template("history_operation.html", history=his)
+
+
+# Страница покупки(переход обратно в меню)
+@app.route("/buy_food/<int:food_id>")
+@login_required
+def buy_food(food_id):
+    success = buy_food_service(current_user.id, food_id)
+    return redirect(url_for("menu"))
+
 
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user() # Удаляет сессию
+    logout_user()  # Удаляет сессию
     return redirect(url_for('login'))
+
 
 if __name__ == "__main__":
     create_db()

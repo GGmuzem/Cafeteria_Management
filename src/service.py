@@ -12,6 +12,7 @@ from database.wallets import Wallet
 from database.notifications import Notification
 from schemas import StorageCreate, StorageDelete
 from pydantic import ValidationError
+from datetime import datetime
 
 from flask import render_template, request, redirect, url_for, flash
 from config import app, db
@@ -160,3 +161,48 @@ def send_balance_notification(user_id: int, amount: int, description: str = "Т�
 
     db.session.commit()
     return True, "Уведомление создано"
+from config import db
+from database.users import User
+from database.menu import Menu
+from database.store import Storage
+from database.history import history_operation
+import json
+
+def buy_food_service(user_id, food_id):  # покупка еды
+    try:
+        user = User.query.get(user_id)
+        food = Menu.query.get(food_id)
+        
+        # Проверка: можно заказать только один Завтрак и один Обед в день
+        if food.meal_type in ['Завтрак', 'Обед']:
+            start_of_day = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            existing_order = history_operation.query.filter(
+                history_operation.user == user.id,
+                history_operation.type_of_transaction == food.meal_type,
+                history_operation.date >= start_of_day
+            ).first()
+            if existing_order:
+                return False
+
+        user_balance = user.get_balance()
+
+        if user_balance < food.price:
+            return False
+
+        success = user.rem_money(food.price)
+        if not success:
+            return False
+
+        his = history_operation(
+            user=user.id,
+            type_of_transaction=food.meal_type,
+            amount=food.price
+        )
+
+        db.session.add(his)
+        db.session.commit()
+        return True
+
+    except Exception as e:
+        db.session.rollback()
+        return False

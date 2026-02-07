@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>История операций </title>
+</head>
+<body>
+    <h1>История операций</h1>
+    <table>
+        <td>Тип опреции</td>
+        <td>Сумма</td>
+        <td>Дата</td>
+        {%for i in history%}
+            <tr>
+                <td>{{i.type_of_transaction}}</td>
+                <td>{{i.amount}}</td>
+                <td>{{i.date}}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

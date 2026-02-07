@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>История операций (Админ)</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Полная история операций</h1>
+    <a href="/account">Вернуться в личный кабинет</a>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Пользователь</th>
+                <th>Роль</th>
+                <th>Тип операции</th>
+                <th>Сумма (руб)</th>
+                <th>Дата и время</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record, user in history %}
+            <tr>
+                <td>{{ record.id }}</td>
+                <td>{{ user.login }}</td>
+                <td>{{ user.role }}</td>
+                <td>{{ record.type_of_transaction }}</td>
+                <td>{{ record.amount }}</td>
+                <td>{{ record.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">История пуста.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

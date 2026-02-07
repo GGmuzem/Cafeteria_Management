@@ -83,6 +83,32 @@
             <span class="value">{{ current_user.get_wallet() }}</span>
         </div>
 
+        <div class="info-group">
+            <span class="label">Баланс кошелька:</span>
+            <span class="value">{{ current_user.get_balance() }}</span>
+        </div>
+
+        <div class="info-group">
+            <span class="label">Пополнить:</span>
+            <form method="POST">
+                <input type="number" name="how_many_on">
+                <button type="submit">Пополнить</button>
+            </form>
+        </div>
+
+        <div class="info-group">
+            <span class="label">Снять:</span>
+            <form method="POST">
+                <input type="number" name="how_many_off">
+                <button type="submit">Снять</button>
+            </form>
+        </div>
+
+        <div>
+            <a href="{{ url_for('history_operation') }}">История операций</a>
+        </div>
+
+
         <a href="{{ url_for('logout') }}" class="btn-logout">Выйти из аккаунта</a>
     </div>
 

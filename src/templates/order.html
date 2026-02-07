@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Оформление заказа</title>
+    <style>
+        .warning { color: red; font-weight: bold; }
+        .suitable { color: green; }
+        .card { 
+            border: 1px solid #ccc; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 5px;
+        }
+        .alert-card {
+            border-color: #ffcccc;
+            background-color: #fff5f5;
+        }
+        .filter-nav { margin-bottom: 20px; }
+        .filter-nav a {
+            margin-right: 10px;
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #eee;
+            border-radius: 3px;
+            color: #333;
+        }
+        .filter-nav a.active {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Оформление заказа</h1>
+    
+    <div style="background: #f0f0f0; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+        <form method="GET" action="{{ url_for('order') }}">
+            <label>Поиск ученика по логину:</label>
+            <input type="text" name="student_login" value="{{ target_user.login if target_user else '' }}" placeholder="Введите логин" required>
+            <button type="submit">Найти</button>
+        </form>
+    </div>
+    
+    {% if target_user %}
+    <p><strong>Ученик:</strong> {{ target_user.login }} | <strong>Баланс:</strong> {{ balance }} руб.</p>
+
+    <div class="filter-nav">
+        <strong>Фильтр:</strong>
+        <a href="{{ url_for('order', student_login=target_user.login) }}" class="{% if not current_meal_type %}active{% endif %}">Все</a>
+        <a href="{{ url_for('order', meal_type='Завтрак', student_login=target_user.login) }}" class="{% if current_meal_type == 'Завтрак' %}active{% endif %}">Завтрак</a>
+        <a href="{{ url_for('order', meal_type='Обед', student_login=target_user.login) }}" class="{% if current_meal_type == 'Обед' %}active{% endif %}">Обед</a>
+    </div>
+    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul style="color: blue;">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <input type="hidden" name="student_login" value="{{ target_user.login }}">
+        <button type="button" onclick="toggleAll()">Выбрать все / Снять выделение</button>
+        <br><br>
+        
+        {% for item in items %}
+            <div class="card {% if not item.is_suitable %}alert-card{% endif %}">
+                <label>
+                    <input type="checkbox" name="food_ids" value="{{ item.obj.id }}" class="food-checkbox">
+                    <strong>{{ item.obj.name }}</strong> — {{ item.obj.price }} руб.
+                </label>
+                <br>
+                <small>Тип: {{ item.obj.meal_type }}</small><br>
+                <small>Состав: 
+                    {% if item.obj.composition is mapping %}
+                        {{ item.obj.composition.get('ingredients', []) | join(', ') }}
+                    {% else %}
+                        {{ item.obj.composition }}
+                    {% endif %}
+                </small>
+                
+                {% if not item.is_suitable %}
+                    <br><span class="warning">⚠️ Внимание! {{ item.warning }} (Не рекомендуется)</span>
+                {% else %}
+                    <br><span class="suitable">✅ Подходит вам</span>
+                {% endif %}
+            </div>
+        {% else %}
+            <p>Меню пусто.</p>
+        {% endfor %}
+        
+        <br>
+        <button type="submit">Купить выбранное</button>
+    </form>
+    {% else %}
+        <p>Пожалуйста, найдите ученика, чтобы начать оформление заказа.</p>
+    {% endif %}
+    
+    <hr>
+    <a href="/menu">Вернуться в меню</a> | <a href="/account">Личный кабинет</a>
+
+    <script>
+        function toggleAll() {
+            var checkboxes = document.querySelectorAll('.food-checkbox');
+            var allChecked = true;
+            // Проверяем, все ли уже выбраны
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (!checkboxes[i].checked) {
+                    allChecked = false;
+                    break;
+                }
+            }
+            // Инвертируем состояние
+            checkboxes.forEach(function(cb) {
+                cb.checked = !allChecked;
+            });
+        }
+    </script>
+</body>
+</html>

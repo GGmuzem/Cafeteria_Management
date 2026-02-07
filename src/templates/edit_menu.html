@@ -32,6 +32,12 @@
         {% endif %}
         <input type="number" name="weight" value="{{ weight_val }}"><br><br>
         
+        <label>Тип меню:</label><br>
+        <select name="meal_type">
+            <option value="Завтрак" {% if dish.meal_type == 'Завтрак' %}selected{% endif %}>Завтрак</option>
+            <option value="Обед" {% if dish.meal_type == 'Обед' %}selected{% endif %}>Обед</option>
+        </select><br><br>
+        
         <button type="submit">Сохранить изменения</button>
         <a href="/menu">Отмена</a>
     </form>

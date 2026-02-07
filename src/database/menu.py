@@ -10,10 +10,12 @@ class Menu(db.Model):
     meal_type = db.Column(db.String(20), nullable=True) # используется в меню завтрак/обед
 
     
-    def __init__(self, name, price, composition):
+    def __init__(self, name, price, composition, meal_type):
         self.name = name
         self.price = price
         self.composition = composition
+        self.meal_type = meal_type
+
 
     def __repr__(self):
         return f'<Menu {self.id}>'

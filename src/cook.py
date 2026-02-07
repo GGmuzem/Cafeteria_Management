@@ -22,8 +22,10 @@ def cook_panel():
             price = request.form.get("price")
             composition_raw = request.form.get("composition")
             weight = request.form.get("weight", "")
+            meal_type = request.form.get("meal_type")
 
-            if not name or not price or not composition_raw:
+
+            if not name or not price or not composition_raw or not weight or not meal_type:
                 return "Заполните все поля", 400
 
             composition_list = [
@@ -40,7 +42,8 @@ def cook_panel():
             dish = Menu(
                 name=name,
                 price=int(price),
-                composition=composition_data
+                composition=composition_data,
+                meal_type=meal_type
             )
 
             db.session.add(dish)
