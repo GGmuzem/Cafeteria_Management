@@ -1,40 +1,53 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Меню столовой</title>
-</head>
+{% block title %}Меню - Вкусная Столовая{% endblock %}
 
-<body>
+{% block content %}
+<div class="page-header"
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     <h1>Наше Меню</h1>
 
     {% if current_user.role in ['cook', 'admin'] %}
-    <div style="margin-bottom: 15px;">
-        <a href="/cook_panel"
-            style="padding: 10px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">👨‍🍳
-            Панель повара</a>
-    </div>
+    <a href="{{ url_for('cook.cook_panel') }}" class="btn btn-secondary">
+        <i class="fas fa-hat-chef"></i> Панель повара
+    </a>
     {% endif %}
+</div>
 
-    <!-- Форма фильтрации -->
-    <div style="margin-bottom: 20px; padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd;">
-        <form action="/menu" method="get">
-            <label for="allergen">Исключить аллерген (например, лук):</label>
-            <input type="text" id="allergen" name="allergen" value="{{ request.args.get('allergen', '') }}"
-                placeholder="Введите ингредиент">
-            <button type="submit">Применить фильтр</button>
-            <a href="/menu" style="margin-left: 10px;">Сбросить</a>
-        </form>
-    </div>
+<!-- Filters -->
+<div class="card" style="margin-bottom: 30px;">
+    <form action="{{ url_for('menu') }}" method="get"
+        style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0; flex-grow: 1;">
+            <label for="allergen" class="form-label">Исключить аллерген:</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="allergen" name="allergen" value="{{ request.args.get('allergen', '') }}"
+                    class="form-control" placeholder="Например: лук, орехи">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i>
+                </button>
+            </div>
+        </div>
+        {% if request.args.get('allergen') %}
+        <a href="{{ url_for('menu') }}" class="btn btn-outline" style="align-self: flex-end;">Сбросить</a>
+        {% endif %}
+    </form>
+</div>
 
-    <div class="menu-container">
-        {% for item in menu_items %}
-        <div class="menu-item" style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
-            <h3>{{ item.name }}</h3>
+<!-- Menu Grid -->
+<div class="grid menu-container">
+    {% for item in menu_items %}
+    <div class="card menu-item">
+        <div class="menu-content">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <h3 style="margin: 0;">{{ item.name }}</h3>
+                <span class="menu-item-price">{{ item.price }} ₽</span>
+            </div>
 
-            <p>Состав:
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">
+                <span class="badge" style="background: var(--light-color); color: #333; margin-right: 5px;">{{
+                    item.meal_type }}</span>
+                <i class="fas fa-utensils" style="color: var(--secondary-color);"></i>
                 {% if item.composition is mapping %}
                 {{ item.composition.get('ingredients', []) | join(', ') }}
                 {% else %}
@@ -43,28 +56,47 @@
             </p>
 
             {% if item.composition is mapping and item.composition.get('weight') %}
-            <p>Вес: {{ item.composition.weight }} г.</p>
+            <p style="color: #888; font-size: 0.8rem; margin-bottom: 15px;">
+                <i class="fas fa-weight-hanging"></i> {{ item.composition.weight }} г.
+            </p>
             {% endif %}
+        </div>
 
-            <p><strong>Цена:</strong> {{ item.price }} руб.</p>
+        <div class="menu-actions" style="margin-top: auto; padding-top: 15px; border-top: 1px solid #eee;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="{{ url_for('menu_reviews', menu_id=item.id) }}" class="btn btn-outline"
+                    style="padding: 5px 10px; font-size: 0.9rem;">
+                    <i class="far fa-comment-dots"></i> Отзывы
+                </a>
 
-            <div style="margin-top: 10px;">
-                <a href="{{ url_for('menu_reviews', menu_id=item.id) }}"
-                    style="text-decoration: none; color: #007bff;">💬 Отзывы</a>
+                <form action="{{ url_for('buy_food', food_id=item.id) }}" method="get" style="display: inline;">
+                    <button type="submit" class="btn btn-primary" style="padding: 5px 15px;">
+                        Купить
+                    </button>
+                </form>
             </div>
 
             {% if current_user.role in ['cook', 'admin'] %}
-            <hr>
-            <a href="/cook_panel/edit_menu/{{ item.id }}">✏️ Редактировать</a> |
-            <a href="/cook_panel/delete_menu/{{ item.id }}" onclick="return confirm('Вы уверены?');" style="color: red;">🗑️
-                Удалить</a>
+            <div
+                style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; display: flex; gap: 10px; justify-content: flex-end;">
+                <a href="{{ url_for('cook.edit_menu', id=item.id) }}"
+                    style="color: var(--secondary-color); font-size: 0.9rem;">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="{{ url_for('cook.delete_menu', id=item.id) }}" onclick="return confirm('Вы уверены?');"
+                    style="color: var(--danger-color); font-size: 0.9rem;">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
             {% endif %}
         </div>
-        {% else %}
-        <p>Меню пока пусто.</p>
-        {% endfor %}
     </div>
-    <a href="/account">Вернуться в профиль</a>
-</body>
-
-</html>
+    {% else %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+        <i class="fas fa-cookie-bite" style="font-size: 3rem; color: #ccc; margin-bottom: 20px;"></i>
+        <h3>Меню пока пусто</h3>
+        <p>Загляните позже!</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

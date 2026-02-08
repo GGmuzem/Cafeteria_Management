@@ -1,50 +1,79 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Отзывы - {{ menu_item.name }}</title>
-</head>
+{% block title %}Отзывы - {{ menu_item.name }} - Вкусная Столовая{% endblock %}
 
-<body>
-    <h1>Отзывы о блюде: {{ menu_item.name }}</h1>
-    <p>Цена: {{ menu_item.price }} руб.</p>
-    <a href="{{ url_for('menu') }}">← Вернуться к меню</a>
-    <hr>
-
-    <h3>Оставить отзыв</h3>
-    <form method="POST">
-        <label for="rating">Оценка:</label>
-        <select name="rating" id="rating" required>
-            <option value="5">5 - Отлично</option>
-            <option value="4">4 - Хорошо</option>
-            <option value="3">3 - Нормально</option>
-            <option value="2">2 - Плохо</option>
-            <option value="1">1 - Ужасно</option>
-        </select>
-        <br><br>
-        <label for="comment">Комментарий:</label><br>
-        <textarea name="comment" id="comment" rows="4" cols="50" required
-            placeholder="Напишите ваш отзыв здесь..."></textarea>
-        <br><br>
-        <button type="submit">Отправить отзыв</button>
-    </form>
-
-    <hr>
-    <h3>Отзывы ({{ reviews|length }})</h3>
-    {% if reviews %}
-    {% for review in reviews %}
-    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
-        <p><strong>Оценка: {{ review.rating }}/5</strong></p>
-        <p>{{ review.review }}</p>
-        <small style="color: grey;">Пользователь {{ review.user }} | {{ review.date.strftime('%d.%m.%Y %H:%M')
-            }}</small>
+{% block content %}
+<div class="card">
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
+        <div>
+            <h2>{{ menu_item.name }}</h2>
+            <span class="menu-item-price">{{ menu_item.price }} ₽</span>
+        </div>
+        <a href="{{ url_for('menu') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Меню
+        </a>
     </div>
-    {% endfor %}
-    {% else %}
-    <p>Отзывов пока нет. Будьте первым!</p>
-    {% endif %}
-</body>
 
-</html>
+    <div class="grid" style="grid-template-columns: 1fr 2fr;">
+        <!-- Review Form -->
+        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px;">
+            <h3>Оставить отзыв</h3>
+            <form method="POST">
+                <div class="form-group">
+                    <label for="rating" class="form-label">Оценка</label>
+                    <div class="select-wrapper">
+                        <select name="rating" id="rating" class="form-control" required>
+                            <option value="5">⭐⭐⭐⭐⭐ - Отлично</option>
+                            <option value="4">⭐⭐⭐⭐ - Хорошо</option>
+                            <option value="3">⭐⭐⭐ - Нормально</option>
+                            <option value="2">⭐⭐ - Плохо</option>
+                            <option value="1">⭐ - Ужасно</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment" class="form-label">Комментарий</label>
+                    <textarea name="comment" id="comment" rows="5" class="form-control" required
+                        placeholder="Напишите ваш отзыв здесь..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-paper-plane"></i> Отправить
+                </button>
+            </form>
+        </div>
+
+        <!-- Reviews List -->
+        <div>
+            <h3>Отзывы ({{ reviews|length }})</h3>
+
+            {% if reviews %}
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for review in reviews %}
+                <div
+                    style="background: white; border: 1px solid #eee; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <strong>{{ review.user }}</strong>
+                        <span style="color: #888; font-size: 0.8rem;">{{ review.date.strftime('%d.%m.%Y %H:%M')
+                            }}</span>
+                    </div>
+                    <div style="color: var(--accent-color); margin-bottom: 5px;">
+                        {% for _ in range(review.rating) %}⭐{% endfor %}
+                    </div>
+                    <p style="color: #444;">{{ review.review }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div
+                style="text-align: center; padding: 40px; color: #888; background: #fff; border: 1px dashed #ddd; border-radius: 8px;">
+                <i class="far fa-comments" style="font-size: 3rem; margin-bottom: 10px;"></i>
+                <p>Отзывов пока нет. Будьте первым!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,132 +1,188 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Панель повара</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Вы авторизовались как повар</h1>
+{% block title %}Панель повара - Вкусная Столовая{% endblock %}
 
-<hr>
-<h2>Добавить блюдо в меню</h2>
-<form method="post">
-    <input type="hidden" name="action" value="add_menu">
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1><i class="fas fa-hat-chef"></i> Панель повара</h1>
+</div>
 
-    <label>Название блюда:</label><br>
-    <input type="text" name="name" required><br><br>
+<div class="grid" style="grid-template-columns: 2fr 1fr;">
 
-    <label>Цена:</label><br>
-    <input type="number" name="price" required><br><br>
+    <!-- Left Column: Menu Management -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
 
-    <label>Состав:</label><br>
-    <textarea name="composition" rows="4" cols="50" required>
-    </textarea><br><br>
+        <!-- Current Menu List -->
+        <div class="card">
+            <h2>Текущее Меню</h2>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for m in menu %}
+                <div style="border: 1px solid #eee; padding: 15px; border-radius: 8px; background: #fff;">
+                    {% if edit_menu and edit_menu.id == m.id %}
+                    <!-- Edit Form -->
+                    <form method="post" style="display: flex; flex-direction: column; gap: 10px;">
+                        <input type="hidden" name="action" value="save_menu">
+                        <input type="hidden" name="menu_id" value="{{ edit_menu.id }}">
 
-    <label>Тип меню:</label><br>
-    <select name="meal_type">
-        <option value="Завтрак">Завтрак</option>
-        <option value="Обед">Обед</option>
-    </select><br><br>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input name="name" value="{{ edit_menu.name }}" class="form-control" placeholder="Название">
+                            <input name="price" value="{{ edit_menu.price }}" class="form-control" placeholder="Цена">
+                        </div>
+                        <textarea name="composition" class="form-control"
+                            rows="2">{{ edit_menu.composition }}</textarea>
+                        <input type="number" name="weight" min="1" step="1" value="{{ m.weight if m.weight else '' }}"
+                            class="form-control" placeholder="Вес (г)">
 
-    <label>Вес (г):</label><br>
-    <input type="number" name="weight" min="1">
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+                            <a href="{{ url_for('cook.cook_panel') }}" class="btn btn-outline btn-sm">Отмена</a>
+                        </div>
+                    </form>
+                    {% else %}
+                    <!-- Display Item -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <h4 style="margin: 0 0 5px 0;">{{ m.name }} <span
+                                    style="font-weight: 400; font-size: 0.9em; color: #666;">{% if m.weight %}({{
+                                    m.weight }} г){% endif %}</span></h4>
+                            <div style="color: var(--primary-color); font-weight: bold; margin-bottom: 5px;">{{ m.price
+                                }} ₽</div>
+                            <p style="font-size: 0.9em; color: #555;">{{ m.composition }}</p>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <form method="post">
+                                <input type="hidden" name="action" value="start_edit_menu">
+                                <input type="hidden" name="menu_id" value="{{ m.id }}">
+                                <button type="submit" class="btn btn-outline" style="padding: 5px 10px;"
+                                    title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </form>
+                            <form method="post" onsubmit="return confirm('Удалить это блюдо?');">
+                                <input type="hidden" name="action" value="delete_menu">
+                                <input type="hidden" name="menu_id" value="{{ m.id }}">
+                                <button type="submit" class="btn btn-outline"
+                                    style="padding: 5px 10px; color: var(--danger-color); border-color: var(--danger-color);"
+                                    title="Удалить">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
 
-    <button type="submit">Добавить блюдо</button>
-</form>
-
-
-<hr>
-<h2>Текущее меню</h2>
-<ul>
-
-
-    
-{% for m in menu %}
-    <li>
-        <b>{{ m.name }}</b> {% if m.weight %}({{ m.weight }} г){% endif %} — {{ m.price }} руб.<br>
-        Состав: {{ m.composition }}
-        {% if edit_menu %}
-        <form method="post">
-            <input type="hidden" name="action" value="save_menu">
-            <input type="hidden" name="menu_id" value="{{ edit_menu.id }}">
-
-            <input name="name" value="{{ edit_menu.name }}">
-            <input name="price" value="{{ edit_menu.price }}">
-            <input name="composition" value="{{ edit_menu.composition }}">
-            <input type="number" name="weight" min="1" step="1" value="{{ m.weight if m.weight else '' }}" placeholder="вес в г">
-
-            <button type="submit">Сохранить</button>
-        </form>
-        {% else %}
-        <form method="post" style="display:inline">
-            <input type="hidden" name="action" value="start_edit_menu">
-            <input type="hidden" name="menu_id" value="{{ m.id }}">
-            <button type="submit">Изменить</button>
-        </form>
-
-        <form method="post" style="display:inline">
-            <input type="hidden" name="action" value="delete_menu">
-            <input type="hidden" name="menu_id" value="{{ m.id }}">
-            <button type="submit">Удалить</button>
-        </form>
-        {% endif %}
-    </li>
-{% endfor %}
-</ul>
-
-
-<hr>
-<h2>Склад</h2>
-{% if storage %}
-    <ul>
-        {% for item in storage %}
-            <li>{{ item.name }} — {{ item.count }}</li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>Склад пуст.</p>
-{% endif %}
+        <!-- Stock / Storage -->
 
 
-<hr>
-<h2>Создать заявку на пополнение</h2>
-<form method="post">
-    <input type="hidden" name="action" value="create_request">
-    <label>Продукт:</label><br>
-    <input type="text" name="product" required><br><br>
-    <label>Количество:</label><br>
-    <input type="number" name="amount" required><br><br>
-    <button type="submit">Отправить заявку</button>
-</form>
+        <!-- Requests History -->
+        <div class="card">
+            <h2>Мои заявки</h2>
+            {% if my_requests %}
+            <div style="overflow-x: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Продукт</th>
+                            <th>Кол-во</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in my_requests %}
+                        <tr>
+                            <td>{{ req.product }}</td>
+                            <td>{{ req.amount }}</td>
+                            <td>
+                                {% if req.status == 'pending' %}
+                                <span style="color: orange; font-weight: 600;">Ожидание</span>
+                                {% elif req.status == 'approved' %}
+                                <span style="color: var(--success-color); font-weight: 600;">Одобрено</span>
+                                {% elif req.status == 'rejected' %}
+                                <span style="color: var(--danger-color); font-weight: 600;">Отклонено</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ req.date.strftime('%d.%m.%Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>Заявок нет.</p>
+            {% endif %}
+        </div>
+    </div>
 
-<h3>Текущие заявки</h3>
-{% if my_requests %}
-<table border="1" cellpadding="5">
-  <tr><th>Продукт</th><th>Количество</th><th>Статус</th><th>Дата подачи</th></tr>
-  {% for req in my_requests %}
-  <tr>
-    <td>{{ req.product }}</td>
-    <td>{{ req.amount }}</td>
-    <td>
-      {% if req.status == 'pending' %}
-        <span style="color: orange;">Ожидание</span>
-      {% elif req.status == 'approved' %}
-        <span style="color: green;">Одобрено</span>
-      {% elif req.status == 'rejected' %}
-        <span style="color: red;">Отклонено</span>
-      {% endif %}
-    </td>
-    <td>{{ req.date.strftime('%d.%m.%Y %H:%M') }}</td>
-  </tr>
-  {% endfor %}
-</table>
-{% else %}
-<p>Заявок пока нет.</p>
-{% endif %}
+    <!-- Right Column: Actions -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
 
-<hr>
-<a href="/logout">Выйти</a>
+        <!-- Add Menu Form -->
+        <div class="card" style="position: sticky; top: 100px;">
+            <h3><i class="fas fa-plus-circle"></i> Добавить блюдо</h3>
+            <form method="post">
+                <input type="hidden" name="action" value="add_menu">
 
-</body>
-</html>
+                <div class="form-group">
+                    <label class="form-label">Название</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Цена (₽)</label>
+                    <input type="number" name="price" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Состав</label>
+                    <textarea name="composition" rows="3" class="form-control" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Тип</label>
+                    <select name="meal_type" class="form-control">
+                        <option value="Завтрак">Завтрак</option>
+                        <option value="Обед">Обед</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Вес (г)</label>
+                    <input type="number" name="weight" min="1" class="form-control">
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width: 100%;">
+                    Добавить
+                </button>
+            </form>
+        </div>
+
+        <!-- Create Request Form -->
+        <div class="card" style="position: sticky; top: 600px;"> <!-- approximate -->
+            <h3><i class="fas fa-truck-loading"></i> Запрос продуктов</h3>
+            <form method="post">
+                <input type="hidden" name="action" value="create_request">
+
+                <div class="form-group">
+                    <label class="form-label">Продукт</label>
+                    <input type="text" name="product" class="form-control" required placeholder="Напр. Картофель">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Количество</label>
+                    <input type="number" name="amount" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Отправить заявку
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

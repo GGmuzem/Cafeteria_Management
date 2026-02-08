@@ -24,10 +24,10 @@ def storage():
     if current_user.role == "student":
         return "Доступ запрещен", 403
 
-    # Логика добавления товара (только для админа)
+    # Логика добавления товара (доступно админу и повару)
     if request.method == 'POST':
-        if current_user.role != 'admin':
-            flash("Только администратор может добавлять товары.")
+        if current_user.role not in ['admin', 'cook']:
+            flash("Только администратор или повар могут добавлять товары.")
             return redirect(url_for('storage'))
         
         name = request.form.get('name')
@@ -118,6 +118,31 @@ def delete_storage_item(id):
         flash("Товар удален")
     else:
         flash("Товар не найден")
+    return redirect(url_for('storage'))
+
+@app.route('/storage/replenish/<int:id>', methods=['POST'])
+@login_required
+def replenish_storage_item(id):
+    if current_user.role not in ['admin', 'cook']:
+        flash("Доступ запрещен.")
+        return redirect(url_for('storage'))
+        
+    item = db.session.get(Storage, id)
+    if not item:
+        flash("Товар не найден")
+        return redirect(url_for('storage'))
+
+    try:
+        amount = int(request.form.get('amount', 0))
+        if amount <= 0:
+            flash("Количество должно быть положительным числом")
+        else:
+            item.count += amount
+            db.session.commit()
+            flash(f"Успешно добавлено {amount} ед. к '{item.name}'")
+    except ValueError:
+        flash("Ошибка ввода числа")
+        
     return redirect(url_for('storage'))
 
 def decrease_stock(product_id: int, amount: int = 1):

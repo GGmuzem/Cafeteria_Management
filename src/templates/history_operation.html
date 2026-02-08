@@ -1,22 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>История операций </title>
-</head>
-<body>
-    <h1>История операций</h1>
-    <table>
-        <td>Тип опреции</td>
-        <td>Сумма</td>
-        <td>Дата</td>
-        {%for i in history%}
-            <tr>
-                <td>{{i.type_of_transaction}}</td>
-                <td>{{i.amount}}</td>
-                <td>{{i.date}}</td>
-            </tr>
-        {% endfor %}
-    </table>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}История операций - Вкусная Столовая{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2><i class="fas fa-history"></i> История операций</h2>
+        <a href="{{ url_for('account') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Назад
+        </a>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Тип операции</th>
+                    <th>Сумма</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in history %}
+                <tr>
+                    <td>
+                        {% if 'пополнение' in i.type_of_transaction|lower %}
+                        <span style="color: var(--success-color);"><i class="fas fa-arrow-up"></i> {{
+                            i.type_of_transaction }}</span>
+                        {% else %}
+                        <span style="color: var(--danger-color);"><i class="fas fa-arrow-down"></i> {{
+                            i.type_of_transaction }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 600;">{{ i.amount }} ₽</td>
+                    <td style="color: #666;">{{ i.date }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 30px;">История операций пуста</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

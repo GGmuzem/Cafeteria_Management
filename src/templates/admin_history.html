@@ -1,46 +1,59 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>История операций (Админ)</title>
-    <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-    </style>
-</head>
-<body>
-    <h1>Полная история операций</h1>
-    <a href="/account">Вернуться в личный кабинет</a>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Пользователь</th>
-                <th>Роль</th>
-                <th>Тип операции</th>
-                <th>Сумма (руб)</th>
-                <th>Дата и время</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for record, user in history %}
-            <tr>
-                <td>{{ record.id }}</td>
-                <td>{{ user.login }}</td>
-                <td>{{ user.role }}</td>
-                <td>{{ record.type_of_transaction }}</td>
-                <td>{{ record.amount }}</td>
-                <td>{{ record.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="6">История пуста.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}История операций (Админ) - Вкусная Столовая{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1><i class="fas fa-history"></i> Полная история операций</h1>
+    <a href="{{ url_for('admin_panel') }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Админ-панель
+    </a>
+</div>
+
+<div class="card">
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Пользователь</th>
+                    <th>Роль</th>
+                    <th>Тип операции</th>
+                    <th>Сумма</th>
+                    <th>Дата и время</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record, user in history %}
+                <tr>
+                    <td>{{ record.id }}</td>
+                    <td><strong>{{ user.login }}</strong></td>
+                    <td><span class="badge">{{ user.role }}</span></td>
+                    <td>
+                        {% if record.type_of_transaction == 'deposit' %}
+                        <span style="color: var(--success-color);"><i class="fas fa-arrow-up"></i> Пополнение</span>
+                        {% elif record.type_of_transaction == 'withdrawal' %}
+                        <span style="color: var(--danger-color);"><i class="fas fa-arrow-down"></i> Списание</span>
+                        {% else %}
+                        {{ record.type_of_transaction }}
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: bold;">
+                        {% if record.type_of_transaction == 'deposit' %}
+                        +{{ record.amount }} ₽
+                        {% else %}
+                        -{{ record.amount }} ₽
+                        {% endif %}
+                    </td>
+                    <td style="color: #777;">{{ record.date.strftime('%d.%m.%Y %H:%M') }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">История пуста.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

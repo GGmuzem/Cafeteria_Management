@@ -1,79 +1,115 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Администратор</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Панель администратора</h1>
+{% block title %}Управление заявками - Вкусная Столовая{% endblock %}
 
-<hr>
-<h2>Заявки на закупку</h2>
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1><i class="fas fa-tasks"></i> Управление заявками</h1>
+    <a href="{{ url_for('admin_panel') }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Админ-панель
+    </a>
+</div>
 
-<table border="1">
-    <tr>
-        <th>Продукт</th>
-        <th>Количество</th>
-        <th>Статус</th>
-        <th>Действия</th>
-    </tr>
-    {% for r in requests %}
-    <tr>
-        <td>{{ r.product }}</td>
-        <td>{{ r.amount }}</td>
-        <td>{{ r.status }}</td>
-        <td>
-            {% if edit_id == r.id %}
-                <!-- Форма редактирования -->
-                <form method="post">
-                    <input type="hidden" name="action" value="edit_request">
-                    <input type="hidden" name="request_id" value="{{ r.id }}">
+<div class="card">
+    <h2>Заявки на закупку</h2>
 
-                    <input name="product" value="{{ r.product }}">
-                    <input type="number" name="amount" value="{{ r.amount }}">
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Продукт</th>
+                    <th>Количество</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in requests %}
+                <tr>
+                    <td>{{ r.id }}</td>
 
-                    <select name="status">
-                        <option value="pending" {% if r.status == "pending" %}selected{% endif %}>pending</option>
-                        <option value="approved" {% if r.status == "approved" %}selected{% endif %}>approved</option>
-                        <option value="rejected" {% if r.status == "rejected" %}selected{% endif %}>rejected</option>
-                    </select>
+                    {% if edit_id == r.id %}
+                    <!-- Edit Mode -->
+                    <td colspan="4">
+                        <form method="post" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <input type="hidden" name="action" value="edit_request">
+                            <input type="hidden" name="request_id" value="{{ r.id }}">
 
-                    <button>Сохранить</button>
-                </form>
+                            <input name="product" value="{{ r.product }}" class="form-control" style="width: auto;"
+                                placeholder="Продукт">
+                            <input type="number" name="amount" value="{{ r.amount }}" class="form-control"
+                                style="width: 100px;" placeholder="Кол-во">
 
-            {% elif r.status == "pending" %}
-                <!-- Одобрение / отклонение -->
-                <form method="post" style="display:inline">
-                    <input type="hidden" name="action" value="approve_request">
-                    <input type="hidden" name="request_id" value="{{ r.id }}">
-                    <button>✓</button>
-                </form>
+                            <div class="select-wrapper" style="width: auto;">
+                                <select name="status" class="form-control">
+                                    <option value="pending" {% if r.status=="pending" %}selected{% endif %}>Ожидание
+                                    </option>
+                                    <option value="approved" {% if r.status=="approved" %}selected{% endif %}>Одобрено
+                                    </option>
+                                    <option value="rejected" {% if r.status=="rejected" %}selected{% endif %}>Отклонено
+                                    </option>
+                                </select>
+                            </div>
 
-                <form method="post" style="display:inline">
-                    <input type="hidden" name="action" value="reject_request">
-                    <input type="hidden" name="request_id" value="{{ r.id }}">
-                    <button>✕</button>
-                </form>
+                            <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+                            <a href="{{ url_for('admin.admin_requests') }}" class="btn btn-outline btn-sm">Отмена</a>
+                        </form>
+                    </td>
+                    {% else %}
+                    <!-- Display Mode -->
+                    <td>{{ r.product }}</td>
+                    <td>{{ r.amount }}</td>
+                    <td>
+                        {% if r.status == 'pending' %}
+                        <span style="color: orange; font-weight: 600;">Ожидание</span>
+                        {% elif r.status == 'approved' %}
+                        <span style="color: var(--success-color); font-weight: 600;">Одобрено</span>
+                        {% elif r.status == 'rejected' %}
+                        <span style="color: var(--danger-color); font-weight: 600;">Отклонено</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px;">
+                            {% if r.status == "pending" %}
+                            <form method="post" style="display:inline">
+                                <input type="hidden" name="action" value="approve_request">
+                                <input type="hidden" name="request_id" value="{{ r.id }}">
+                                <button type="submit" class="btn btn-success"
+                                    style="padding: 5px 10px; font-size: 0.8rem;" title="Одобрить">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
 
-            {% else %}
-                <!-- Кнопка "Изменить" -->
-                <form method="post">
-                    <input type="hidden" name="action" value="start_edit">
-                    <input type="hidden" name="request_id" value="{{ r.id }}">
-                    <button>Изменить</button>
-                </form>
-            {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+                            <form method="post" style="display:inline">
+                                <input type="hidden" name="action" value="reject_request">
+                                <input type="hidden" name="request_id" value="{{ r.id }}">
+                                <button type="submit" class="btn btn-danger"
+                                    style="padding: 5px 10px; font-size: 0.8rem;" title="Отклонить">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                            {% endif %}
 
-<hr>
-<h2>Пользователи</h2>
-
-<hr>
-<a href="/logout">Выйти</a>
-
-</body>
-</html>
+                            <form method="post" style="display:inline">
+                                <input type="hidden" name="action" value="start_edit">
+                                <input type="hidden" name="request_id" value="{{ r.id }}">
+                                <button type="submit" class="btn btn-outline"
+                                    style="padding: 5px 10px; font-size: 0.8rem;" title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px;">Заявок нет.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

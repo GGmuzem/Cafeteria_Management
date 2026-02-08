@@ -1,48 +1,54 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Регистрация</title>
-</head>
+{% block title %}Регистрация - Вкусная Столовая{% endblock %}
 
-<body>
-    <h2>Регистрация</h2>
-
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <ul style="color: red;">
-        {% for message in messages %}
-        <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    {% endwith %}
-
-    <form method="POST" action="{{ url_for('register') }}">
-        <div>
-            <label for="login">Логин:</label>
-            <input type="text" id="login" name="login" required>
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
+    <div class="card" style="width: 100%; max-width: 450px; padding: 40px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <i class="fas fa-user-plus" style="font-size: 4rem; color: var(--secondary-color);"></i>
+            <h2 style="margin-top: 10px;">Регистрация</h2>
         </div>
-        <br>
-        <div>
-            <label for="password">Пароль:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <br>
-        <div>
-            <label for="confirm_password">Повторите пароль:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required>
-        </div>
-        <br>
-        <!-- По умолчанию регистрируем как студента, но можно добавить выбор -->
-        <input type="hidden" name="role" value="student">
 
-        <button type="submit">Зарегистрироваться</button>
-    </form>
-    <br>
-    <a href="{{ url_for('login') }}">Уже есть аккаунт? Войти</a>
-</body>
+        <form method="POST" action="{{ url_for('register') }}">
+            <div class="form-group">
+                <label for="login" class="form-label">Придумайте Логин</label>
+                <div style="position: relative;">
+                    <i class="fas fa-user" style="position: absolute; left: 15px; top: 15px; color: #aaa;"></i>
+                    <input type="text" id="login" name="login" class="form-control" style="padding-left: 40px;" required
+                        placeholder="Ваш логин">
+                </div>
+            </div>
 
-</html>
+            <div class="form-group">
+                <label for="password" class="form-label">Пароль</label>
+                <div style="position: relative;">
+                    <i class="fas fa-lock" style="position: absolute; left: 15px; top: 15px; color: #aaa;"></i>
+                    <input type="password" id="password" name="password" class="form-control"
+                        style="padding-left: 40px;" required placeholder="Ваш пароль">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password" class="form-label">Повторите пароль</label>
+                <div style="position: relative;">
+                    <i class="fas fa-check-circle" style="position: absolute; left: 15px; top: 15px; color: #aaa;"></i>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control"
+                        style="padding-left: 40px;" required placeholder="Повторите пароль">
+                </div>
+            </div>
+
+            <input type="hidden" name="role" value="student">
+
+            <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">
+                Создать аккаунт
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 20px; font-size: 0.9rem;">
+            Уже есть аккаунт? <a href="{{ url_for('login') }}"
+                style="color: var(--primary-color); font-weight: 600;">Войти</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

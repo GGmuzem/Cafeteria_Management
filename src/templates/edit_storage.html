@@ -1,30 +1,36 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Редактирование товара</title>
-</head>
-<body>
-    <h2>Редактирование: {{ item.name }}</h2>
-    
+{% extends "base.html" %}
+
+{% block title %}Редактировать товар - Вкусная Столовая{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 0 auto;">
+    <h2><i class="fas fa-edit"></i> Редактирование: {{ item.name }}</h2>
+
     <form method="POST">
-        <label>Название: <br>
-        <input type="text" name="name" value="{{ item.name }}" required></label><br><br>
-        
-        <label>Количество: <br>
-        <input type="number" name="count" value="{{ item.count }}" required></label><br><br>
-        
-        <label>Тип: <br>
-            <select name="type_of_product">
-                <option value="продукт" {% if item.type_of_product == 'продукт' %}selected{% endif %}>Продукт</option>
-                <option value="блюдо" {% if item.type_of_product == 'блюдо' %}selected{% endif %}>Блюдо</option>
-            </select>
-        </label><br><br>
-        
-        <button type="submit">Сохранить изменения</button>
+        <div class="form-group">
+            <label class="form-label">Название</label>
+            <input type="text" name="name" value="{{ item.name }}" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Количество</label>
+            <input type="number" name="count" value="{{ item.count }}" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Тип</label>
+            <div class="select-wrapper">
+                <select name="type_of_product" class="form-control">
+                    <option value="продукт" {% if item.type_of_product=='продукт' %}selected{% endif %}>Продукт</option>
+                    <option value="блюдо" {% if item.type_of_product=='блюдо' %}selected{% endif %}>Блюдо</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 30px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">Сохранить</button>
+            <a href="{{ url_for('storage') }}" class="btn btn-outline" style="flex: 1;">Отмена</a>
+        </div>
     </form>
-    <br>
-    <a href="/storage">Отмена (Вернуться на склад)</a>
-</body>
-</html>
+</div>
+{% endblock %}
