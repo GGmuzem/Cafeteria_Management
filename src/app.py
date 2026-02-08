@@ -131,10 +131,7 @@ def account():
                 current_user.rem_money(float(how_many_off))
             except:
                 pass
-        return redirect("/account")
 
-    return render_template("account.html")
-    if request.method == "POST":
         if "email" in request.form:
             current_user.email = request.form.get("email")
         if "allergen" in request.form:
