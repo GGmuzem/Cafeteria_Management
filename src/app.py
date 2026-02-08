@@ -10,15 +10,9 @@ from database.menu import Menu
 from database.store import Storage
 from database.reviews import Reviews
 from database.requests import Requests
-from auth import auth_bp
-# from admin import admin_bp # Import admin blueprint
-# from cook import cook_bp # Import cook blueprint
+from auth import login_user_db, register_user
 from flask_login import logout_user, login_user, login_required, current_user
 from functools import wraps
-
-# app.register_blueprint(cook_bp) #блюпринт повара
-# app.register_blueprint(admin_bp) #блюпринт админа
-app.register_blueprint(auth_bp) #блюпринт авторизации
 
 
 def create_db():
@@ -56,7 +50,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or current_user.role != 'admin':
             flash("У вас нет прав доступа к этой странице.")
-            return redirect(url_for('auth.account'))
+            return redirect(url_for('account'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -71,11 +65,58 @@ def index():
     return render_template("index.html")
 
 # Страница входа в аккаунт
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        login_data = request.form.get("login")
+        password_data = request.form.get("password")
 
+        if login_user_db(login_data, password_data):
+            return redirect(url_for("account"))
+
+        return "Неверный логин или пароль"
+
+    return render_template("auth/login.html")
 
 # Страница регистрации
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        login_data = request.form.get("login")
+        password_data = request.form.get("password")
+        password_repeat = request.form.get("confirm_password")
 
+        user = register_user(login_data, password_data, password_repeat)
+        if user:
+            return redirect(url_for("account"))
+        return "Ошибка регистрации"
+    return render_template("auth/register.html")
 
+@app.route("/account", methods=["GET", "POST"])
+@login_required
+def account():
+    if request.method == "POST":
+        if "email" in request.form:
+            current_user.email = request.form.get("email")
+        if "allergen" in request.form:
+            current_user.allergen = request.form.get("allergen")
+        if "preferences" in request.form:
+            current_user.preferences = request.form.get("preferences")
+        
+        db.session.commit()
+        return redirect(url_for("account"))
+
+    return render_template(
+        "auth/account.html",
+        user=current_user,
+        wallet=current_user.get_wallet()
+    )
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
 @app.route("/admin-panel")
 @login_required
 @admin_required

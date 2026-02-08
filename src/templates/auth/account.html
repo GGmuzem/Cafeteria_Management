@@ -84,7 +84,7 @@
         </div>
 
         <h3>Редактировать профиль</h3>
-        <form method="POST" action="{{ url_for('auth.account') }}">
+        <form method="POST" action="{{ url_for('account') }}">
             <div class="info-group">
                 <label for="email" class="label">Email:</label>
                 <input type="email" id="email" name="email" value="{{ current_user.email or '' }}" class="value"
@@ -108,7 +108,7 @@
                 изменения</button>
         </form>
 
-        <a href="{{ url_for('auth.logout') }}" class="btn-logout">Выйти из аккаунта</a>
+        <a href="{{ url_for('logout') }}" class="btn-logout">Выйти из аккаунта</a>
     </div>
 
 </body>

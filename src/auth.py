@@ -3,6 +3,7 @@ from database.users import User
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import login_user
 
+# Вход в аккаунт
 def login_user_db(login, password):
     user = User.query.filter_by(login=login).first()
     if user and check_password_hash(user.password, password):
@@ -10,6 +11,7 @@ def login_user_db(login, password):
         return True
     return False
 
+# Регстрация аккаунта
 def register_user(login, password, password_repeat):
     existing_user = User.query.filter_by(login=login).first()
     if existing_user:
