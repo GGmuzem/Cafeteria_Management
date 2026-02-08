@@ -86,10 +86,12 @@ def register():
         password_data = request.form.get("password")
         password_repeat = request.form.get("confirm_password")
 
-        user = register_user(login_data, password_data, password_repeat)
+        user, error_message = register_user(login_data, password_data, password_repeat)
         if user:
             return redirect(url_for("account"))
-        return "Ошибка регистрации"
+        
+        flash(error_message)
+        return render_template("auth/register.html")
     return render_template("auth/register.html")
 
 @app.route("/account", methods=["GET", "POST"])

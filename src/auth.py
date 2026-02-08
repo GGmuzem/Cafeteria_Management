@@ -15,11 +15,9 @@ def login_user_db(login, password):
 def register_user(login, password, password_repeat):
     existing_user = User.query.filter_by(login=login).first()
     if existing_user:
-        print('Имя пользователя уже занято')
-        return False
+        return None, 'Имя пользователя уже занято'
     elif password != password_repeat:
-        print('Пароли не совпадают')
-        return False
+        return None, 'Пароли не совпадают'
     else:
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
         new_user = User(login=login, password=hashed_password, role="student", wallet=None)
@@ -27,9 +25,8 @@ def register_user(login, password, password_repeat):
         try:
             db.session.add(new_user)
             db.session.commit()
-            print('Регистрация прошла успешно! Теперь войдите.')
-            return new_user
+            return new_user, None
         except Exception as e:
             db.session.rollback()
             print(f'Error saving to database: {e}')
-            return False
+            return None, 'Ошибка сохранения в базу данных'
