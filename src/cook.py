@@ -3,6 +3,9 @@ from flask_login import login_required, current_user
 from config import db
 from database.menu import Menu
 from database.store import Storage
+from database.requests import Requests
+from database.history import history_operation as History
+from datetime import datetime
 
 
 cook_bp = Blueprint("cook", __name__, url_prefix="/cook_panel")
@@ -92,7 +95,7 @@ def cook_panel():
                 name=name, #название блюда
                 price=price, #цена блюда
                 composition=", ".join(composition_list), #состав блюда
-                weight=weight #вес блюда
+                weight=weight, #вес блюда
                 meal_type=meal_type
             )
 
@@ -123,3 +126,42 @@ def cook_panel():
     my_requests = Requests.query.filter_by(user=current_user.id).order_by(Requests.date.desc()).all()
 
     return render_template("cook/index.html", menu=menu, edit_menu=edit_menu, edit_menu_id=edit_menu_id, storage=storage, history=history, my_requests=my_requests)
+@cook_bp.route("/edit_menu/<int:id>", methods=["GET", "POST"])
+@login_required
+def edit_menu(id):
+    if current_user.role not in ["cook", "admin"]:
+        return "Доступ запрещён", 403
+    
+    dish = db.session.get(Menu, id)
+    if not dish:
+        return "Блюдо не найдено", 404
+
+    if request.method == "POST":
+        dish.name = request.form.get("name")
+        dish.price = int(request.form.get("price"))
+        
+        # Сохраняем состав в правильном JSON формате
+        composition_raw = request.form.get("composition")
+        composition_list = [x.strip() for x in composition_raw.split(",") if x.strip()]
+        
+        dish.composition = {
+            "ingredients": composition_list,
+            "weight": request.form.get("weight", "")
+        }
+        
+        db.session.commit()
+        return redirect(url_for("menu"))
+
+    return render_template("edit_menu.html", dish=dish)
+
+@cook_bp.route("/delete_menu/<int:id>")
+@login_required
+def delete_menu(id):
+    if current_user.role not in ["cook", "admin"]:
+        return "Доступ запрещён", 403
+        
+    dish = db.session.get(Menu, id)
+    if dish:
+        db.session.delete(dish)
+        db.session.commit()
+    return redirect(url_for("menu"))

@@ -11,7 +11,6 @@ from flask import Blueprint, render_template, request
 from flask_login import login_required, current_user
 from config import db, app
 from database.users import User
-from database.history import History
 from database.requests import Requests
 from database.history import history_operation
 
@@ -59,7 +58,7 @@ def admin_requests():
 
 
 
-    history = History.query.order_by(History.date.desc()).all()
+    history = history_operation.query.order_by(history_operation.date.desc()).all()
     requests = Requests.query.order_by(Requests.date.desc()).all()
     users = User.query.all()
     requests = Requests.query.all()
