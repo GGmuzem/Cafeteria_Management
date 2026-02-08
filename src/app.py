@@ -13,9 +13,11 @@ from cook import cook_bp
 from service import buy_food_service
 from database.history import history_operation
 from database.wallets import Wallet
-
+from werkzeug.security import generate_password_hash
+from admin import admin_bp
 
 app.register_blueprint(cook_bp) #блюпринт повара
+app.register_blueprint(admin_bp) #блюпринт админа
 
 
 @login_manager.user_loader #Загрузка пользователя
