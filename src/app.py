@@ -9,9 +9,12 @@ from werkzeug.security import generate_password_hash
 from database.users import User
 from database.notifications import Notification
 from auth import login_user_db, register_user
-from cook import cook_bp 
+from werkzeug.security import generate_password_hash
+from cook import cook_bp
+from admin import admin_bp
 
 app.register_blueprint(cook_bp) #блюпринт повара
+app.register_blueprint(admin_bp) #блюпринт админа
 
 
 @login_manager.user_loader #Загрузка пользователя
