@@ -1,6 +1,6 @@
 from config import db
 from cryptography.fernet import Fernet
-import os
+from datetime import datetime
 import secrets
 import string
 from flask_login import UserMixin
@@ -32,13 +32,13 @@ class User(db.Model, UserMixin):
 
     key = os.getenv("KEY") # Это ключ который храниться в .env
     def set_wallet(self, wallet_value): # Шифровка кошелька
-        cipher_suite = Fernet(self.key.encode())
+        cipher_suite = Fernet(self.key)
         encrypted_text = cipher_suite.encrypt(str(wallet_value).encode('utf-8'))
         self.wallet = encrypted_text.decode('utf-8')
 
     def get_wallet(self): # Расшифровка кошелька
         try:
-            cipher_suite = Fernet(self.key.encode())
+            cipher_suite = Fernet(self.key)
             decrypted_text = cipher_suite.decrypt(self.wallet.encode('utf-8'))
             return decrypted_text.decode('utf-8')
         except Exception as e:

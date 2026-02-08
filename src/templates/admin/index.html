@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Администратор</title>
+</head>
+<body>
+
+<h1>Панель администратора</h1>
+
+<hr>
+<h2>Заявки на закупку</h2>
+
+<table border="1">
+    <tr>
+        <th>Продукт</th>
+        <th>Количество</th>
+        <th>Статус</th>
+        <th>Действия</th>
+    </tr>
+    {% for r in requests %}
+    <tr>
+        <td>{{ r.product }}</td>
+        <td>{{ r.amount }}</td>
+        <td>{{ r.status }}</td>
+        <td>
+            {% if edit_id == r.id %}
+                <!-- Форма редактирования -->
+                <form method="post">
+                    <input type="hidden" name="action" value="edit_request">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
+
+                    <input name="product" value="{{ r.product }}">
+                    <input type="number" name="amount" value="{{ r.amount }}">
+
+                    <select name="status">
+                        <option value="pending" {% if r.status == "pending" %}selected{% endif %}>pending</option>
+                        <option value="approved" {% if r.status == "approved" %}selected{% endif %}>approved</option>
+                        <option value="rejected" {% if r.status == "rejected" %}selected{% endif %}>rejected</option>
+                    </select>
+
+                    <button>Сохранить</button>
+                </form>
+
+            {% elif r.status == "pending" %}
+                <!-- Одобрение / отклонение -->
+                <form method="post" style="display:inline">
+                    <input type="hidden" name="action" value="approve_request">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
+                    <button>✓</button>
+                </form>
+
+                <form method="post" style="display:inline">
+                    <input type="hidden" name="action" value="reject_request">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
+                    <button>✕</button>
+                </form>
+
+            {% else %}
+                <!-- Кнопка "Изменить" -->
+                <form method="post">
+                    <input type="hidden" name="action" value="start_edit">
+                    <input type="hidden" name="request_id" value="{{ r.id }}">
+                    <button>Изменить</button>
+                </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+<h2>Пользователи</h2>
+
+<hr>
+<a href="/logout">Выйти</a>
+
+</body>
+</html>

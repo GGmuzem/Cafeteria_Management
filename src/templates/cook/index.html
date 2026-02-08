@@ -23,14 +23,14 @@
     <textarea name="composition" rows="4" cols="50" required>
     </textarea><br><br>
 
-    <label>Вес (г):</label><br>
-    <input type="number" name="weight" placeholder="Например: 250"><br><br>
-
     <label>Тип меню:</label><br>
     <select name="meal_type">
         <option value="Завтрак">Завтрак</option>
         <option value="Обед">Обед</option>
     </select><br><br>
+
+    <label>Вес (г):</label><br>
+    <input type="number" name="weight" min="1">
 
     <button type="submit">Добавить блюдо</button>
 </form>
@@ -38,28 +38,42 @@
 
 <hr>
 <h2>Текущее меню</h2>
-{% if menu %}
-    <ul>
-        {% for dish in menu %}
-            <li>
-                <b>{{ dish.name }}</b> —
-                {{ dish.price }} руб.<br>
-                Тип: {{ dish.meal_type }}<br>
-                Состав: 
-                {% if dish.composition is mapping %}
-                    {{ dish.composition.get('ingredients', []) | join(', ') }}
-                    {% if dish.composition.get('weight') %}
-                        <br>Вес: {{ dish.composition.get('weight') }} г.
-                    {% endif %}
-                {% else %}
-                    {{ dish.composition }}
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>Меню пока пустое.</p>
-{% endif %}
+<ul>
+
+
+    
+{% for m in menu %}
+    <li>
+        <b>{{ m.name }}</b> {% if m.weight %}({{ m.weight }} г){% endif %} — {{ m.price }} руб.<br>
+        Состав: {{ m.composition }}
+        {% if edit_menu %}
+        <form method="post">
+            <input type="hidden" name="action" value="save_menu">
+            <input type="hidden" name="menu_id" value="{{ edit_menu.id }}">
+
+            <input name="name" value="{{ edit_menu.name }}">
+            <input name="price" value="{{ edit_menu.price }}">
+            <input name="composition" value="{{ edit_menu.composition }}">
+            <input type="number" name="weight" min="1" step="1" value="{{ m.weight if m.weight else '' }}" placeholder="вес в г">
+
+            <button type="submit">Сохранить</button>
+        </form>
+        {% else %}
+        <form method="post" style="display:inline">
+            <input type="hidden" name="action" value="start_edit_menu">
+            <input type="hidden" name="menu_id" value="{{ m.id }}">
+            <button type="submit">Изменить</button>
+        </form>
+
+        <form method="post" style="display:inline">
+            <input type="hidden" name="action" value="delete_menu">
+            <input type="hidden" name="menu_id" value="{{ m.id }}">
+            <button type="submit">Удалить</button>
+        </form>
+        {% endif %}
+    </li>
+{% endfor %}
+</ul>
 
 
 <hr>
@@ -72,6 +86,43 @@
     </ul>
 {% else %}
     <p>Склад пуст.</p>
+{% endif %}
+
+
+<hr>
+<h2>Создать заявку на пополнение</h2>
+<form method="post">
+    <input type="hidden" name="action" value="create_request">
+    <label>Продукт:</label><br>
+    <input type="text" name="product" required><br><br>
+    <label>Количество:</label><br>
+    <input type="number" name="amount" required><br><br>
+    <button type="submit">Отправить заявку</button>
+</form>
+
+<h3>Текущие заявки</h3>
+{% if my_requests %}
+<table border="1" cellpadding="5">
+  <tr><th>Продукт</th><th>Количество</th><th>Статус</th><th>Дата подачи</th></tr>
+  {% for req in my_requests %}
+  <tr>
+    <td>{{ req.product }}</td>
+    <td>{{ req.amount }}</td>
+    <td>
+      {% if req.status == 'pending' %}
+        <span style="color: orange;">Ожидание</span>
+      {% elif req.status == 'approved' %}
+        <span style="color: green;">Одобрено</span>
+      {% elif req.status == 'rejected' %}
+        <span style="color: red;">Отклонено</span>
+      {% endif %}
+    </td>
+    <td>{{ req.date.strftime('%d.%m.%Y %H:%M') }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>Заявок пока нет.</p>
 {% endif %}
 
 <hr>
