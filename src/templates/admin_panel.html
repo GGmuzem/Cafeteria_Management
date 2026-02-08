@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .action-btn {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+
+        .danger {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Панель администратора</h1>
+    <a href="/account">Вернуться в профиль</a>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul style="color: blue;">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+
+
+    <h3>Список пользователей</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Логин</th>
+                <th>Роль</th>
+                <th>Кошелек</th>
+                <th>Баланс</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user, wallet in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.login }}</td>
+                <td>
+                    <form method="POST" action="/admin-panel/update_role" style="display:inline;">
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <select name="new_role" onchange="this.form.submit()">
+                            <option value="student" {% if user.role=='student' %}selected{% endif %}>Студент</option>
+                            <option value="admin" {% if user.role=='admin' %}selected{% endif %}>Администратор</option>
+                            <option value="cook" {% if user.role=='cook' %}selected{% endif %}>Повар</option>
+                        </select>
+                    </form>
+                </td>
+                <td>{{ user.wallet }}</td>
+                <td>{{ wallet.money if wallet else 0 }} ₽</td>
+                <td>
+                    <form method="POST" action="/admin-panel/delete_user" style="display:inline;"
+                        onsubmit="return confirm('Вы уверены?');">
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <button type="submit" class="action-btn danger">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>
