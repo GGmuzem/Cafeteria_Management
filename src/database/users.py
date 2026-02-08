@@ -3,6 +3,7 @@ from cryptography.fernet import Fernet
 from datetime import datetime
 import secrets
 import string
+import os
 from flask_login import UserMixin
 from .wallets import Wallet
 from .history import history_operation

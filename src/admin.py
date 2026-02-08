@@ -65,7 +65,7 @@ def admin_requests():
     requests = Requests.query.all()
 
     return render_template("admin/index.html", history=history, requests=requests, users=users, edit_id=edit_id)
-    Изменение роли пользователей
+    #Изменение роли пользователей
 
 
 @app.route('/admin/history')

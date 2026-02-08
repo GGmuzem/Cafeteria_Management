@@ -10,6 +10,10 @@ from database.users import User
 from database.notifications import Notification
 from auth import login_user_db, register_user
 from cook import cook_bp 
+from service import buy_food_service
+from database.history import history_operation
+from database.wallets import Wallet
+
 
 app.register_blueprint(cook_bp) #блюпринт повара
 
