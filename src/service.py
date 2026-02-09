@@ -24,10 +24,10 @@ def storage():
     if current_user.role == "student":
         return "Доступ запрещен", 403
 
-    # Логика добавления товара (только для админа)
+    # Логика добавления товара (доступно админу и повару)
     if request.method == 'POST':
-        if current_user.role != 'admin':
-            flash("Только администратор может добавлять товары.")
+        if current_user.role not in ['admin', 'cook']:
+            flash("Только администратор или повар могут добавлять товары.")
             return redirect(url_for('storage'))
         
         name = request.form.get('name')
@@ -36,10 +36,12 @@ def storage():
 
         try:
             # Формируем данные для функции добавления
+            price_per_unit = request.form.get('price_per_unit')
             data = {
                 "name": name,
                 "count": int(count) if count else 0,
-                "type_of_product": type_of_product
+                "type_of_product": type_of_product,
+                "price_per_unit": int(price_per_unit) if price_per_unit else 0
             }
             result = add_product(data) # Используем существующую функцию
             flash(result)
@@ -58,7 +60,8 @@ def add_product(data: dict):
         new_item = Storage(
             name=validated_data.name,
             count=validated_data.count,
-            type_of_product=validated_data.type_of_product
+            type_of_product=validated_data.type_of_product,
+            price_per_unit=data.get("price_per_unit", 0)
         )
         db.session.add(new_item)
         db.session.commit()
@@ -97,6 +100,11 @@ def edit_storage_item(id):
             flash("Количество должно быть числом")
             return render_template('edit_storage.html', item=item)
             
+        try:
+            item.price_per_unit = int(request.form.get('price_per_unit'))
+        except (ValueError, TypeError):
+            pass # Ignore if invalid
+
         item.type_of_product = request.form.get('type_of_product')
         db.session.commit()
         flash("Товар успешно обновлен")
@@ -118,6 +126,38 @@ def delete_storage_item(id):
         flash("Товар удален")
     else:
         flash("Товар не найден")
+    return redirect(url_for('storage'))
+
+@app.route('/storage/replenish/<int:id>', methods=['POST'])
+@login_required
+def replenish_storage_item(id):
+    if current_user.role not in ['admin', 'cook']:
+        flash("Доступ запрещен.")
+        return redirect(url_for('storage'))
+        
+    item = db.session.get(Storage, id)
+    if not item:
+        flash("Товар не найден")
+        return redirect(url_for('storage'))
+
+    try:
+        amount = int(request.form.get('amount', 0))
+        if amount == 0:
+            flash("Количество не может быть нулем")
+        elif amount > 0:
+            item.count += amount
+            db.session.commit()
+            flash(f"Успешно добавлено {amount} ед. к '{item.name}'")
+        else: # amount < 0
+            if item.count >= abs(amount):
+                item.count += amount # amount is negative, so this subtracts
+                db.session.commit()
+                flash(f"Успешно списано {abs(amount)} ед. у '{item.name}'")
+            else:
+                flash(f"Недостаточно товара '{item.name}' (в наличии: {item.count})")
+    except ValueError:
+        flash("Ошибка ввода числа")
+        
     return redirect(url_for('storage'))
 
 def decrease_stock(product_id: int, amount: int = 1):
@@ -184,6 +224,20 @@ def buy_food_service(user_id, food_id):  # покупка еды
             if existing_order:
                 return False
 
+        if user.subscription:
+            from datetime import timedelta
+            expiration_date = user.subscription + timedelta(days=30)
+            if datetime.now() < expiration_date:
+                # Абонемент активен - еда бесплатно
+                his = history_operation(
+                    user=user.id,
+                    type_of_transaction=food.meal_type,
+                    amount=0  # Бесплатно
+                )
+                db.session.add(his)
+                db.session.commit()
+                return True
+
         user_balance = user.get_balance()
 
         if user_balance < food.price:
@@ -200,9 +254,87 @@ def buy_food_service(user_id, food_id):  # покупка еды
         )
 
         db.session.add(his)
+        db.session.add(his)
         db.session.commit()
         return True
 
     except Exception as e:
         db.session.rollback()
         return False
+
+def buy_meal_service(user_id, meal_type):
+    """
+    Покупка полного набора блюд определенного типа (Завтрак/Обед).
+    Цена = сумма цен всех блюд этого типа.
+    """
+    try:
+        user = User.query.get(user_id)
+        
+        # 1. Получаем все блюда этого типа
+        menu_items = Menu.query.filter_by(meal_type=meal_type).all()
+        if not menu_items:
+            return False, "Меню пусто"
+
+        # 2. Считаем общую стоимость и проверяем наличие на складе
+        total_price = 0
+        storage_items_to_update = []
+
+        for item in menu_items:
+            total_price += item.price
+            
+            # Поиск товара на складе по имени
+            storage_item = Storage.query.filter_by(name=item.name).first()
+            if not storage_item:
+                return False, f"Блюдо '{item.name}' не найдено на складе"
+            
+            if storage_item.count < 1:
+                return False, f"Блюдо '{item.name}' закончилось на складе"
+            
+            storage_items_to_update.append(storage_item)
+        
+        # 3. Проверка лимита (1 раз в день)
+        start_of_day = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        existing_order = history_operation.query.filter(
+            history_operation.user == user.id,
+            history_operation.type_of_transaction == meal_type,
+            history_operation.date >= start_of_day
+        ).first()
+        
+        if existing_order:
+            return False, f"{meal_type} уже получен сегодня"
+
+        # 4. Проверка подписки
+        price_to_pay = total_price
+        if user.subscription:
+            from datetime import timedelta
+            expiration_date = user.subscription + timedelta(days=30)
+            if datetime.now() < expiration_date:
+                price_to_pay = 0
+
+        # 5. Проверка баланса и списание
+        if price_to_pay > 0:
+            if user.get_balance() < price_to_pay:
+                return False, "Недостаточно средств"
+            
+            success = user.rem_money(price_to_pay)
+            if not success:
+                return False, "Ошибка списания средств"
+
+        # 6. Списание продуктов со склада
+        for s_item in storage_items_to_update:
+            s_item.count -= 1
+
+        # 7. Запись в историю
+        his = history_operation(
+            user=user.id,
+            type_of_transaction=meal_type,
+            amount=price_to_pay # Записываем сколько реально заплатил (0 или полную стоимость)
+        )
+        db.session.add(his)
+        db.session.commit()
+        
+        return True, "Успешно выдано"
+
+    except Exception as e:
+        db.session.rollback()
+        return False, f"Ошибка: {e}"

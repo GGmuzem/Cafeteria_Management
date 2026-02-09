@@ -18,7 +18,7 @@ class User(db.Model, UserMixin):
     wallet = db.Column(db.String(255), nullable=False, unique=True)
     allergen = db.Column(db.String(255), nullable=True)
     preferences = db.Column(db.String(255), nullable=True)
-
+    subscription = db.Column(db.DateTime(), nullable=True)
     
     def __init__(self, login, password, role="student", wallet=None, health=None):
         self.login = login
@@ -92,3 +92,35 @@ class User(db.Model, UserMixin):
 
     def get_history_operation(self): # Получаем историю опреаций (недавних)
         return history_operation.query.filter_by(user=self.id).order_by(history_operation.date.desc()).all()
+
+    def get_subscription_expiration(self):
+        if self.subscription:
+            from datetime import timedelta
+            return self.subscription + timedelta(days=30)
+        return None
+
+    def is_subscription_active(self):
+        if not self.subscription:
+            return False
+        return datetime.utcnow() < self.get_subscription_expiration()
+
+    def get_today_meals(self):
+        """
+        Проверяет, ел ли ученик сегодня Завтрак и Обед.
+        Возвращает словарь {'Завтрак': bool, 'Обед': bool}
+        """
+        start_of_day = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # Получаем все операции за сегодня
+        today_ops = history_operation.query.filter(
+            history_operation.user == self.id,
+            history_operation.date >= start_of_day,
+            history_operation.type_of_transaction.in_(['Завтрак', 'Обед'])
+        ).all()
+        
+        meals_status = {'Завтрак': False, 'Обед': False}
+        for op in today_ops:
+            if op.type_of_transaction in meals_status:
+                meals_status[op.type_of_transaction] = True
+                
+        return meals_status

@@ -107,13 +107,15 @@ def cook_panel():
         if action == "create_request": #Создание заявки
             product = request.form.get("product")
             amount = request.form.get("amount")
+            price_per_unit = request.form.get("price_per_unit")
 
             new_request = Requests( #данные пользователя по заявке
                 user=current_user.id,
                 product=product,
                 amount=int(amount),
                 status="pending", #повар отправляет заяву и ей даётся статус "ожидание"
-                date=datetime.now()
+                date=datetime.now(),
+                price_per_unit=int(price_per_unit) if price_per_unit else 0
             )
 
             db.session.add(new_request) #выделение в бд места под новую заяву

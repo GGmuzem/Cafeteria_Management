@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль {{ user.login }} - Админ-панель{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2><i class="fas fa-id-card"></i> Профиль пользователя: {{ user.login }}</h2>
+        <a href="{{ url_for('admin.admin_requests') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Назад
+        </a>
+    </div>
+
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+
+        <!-- Basic Info -->
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 8px;">
+            <h3>Основная информация</h3>
+            <p><strong>ID:</strong> {{ user.id }}</p>
+            <p><strong>Роль:</strong> <span class="badge">{{ user.role }}</span></p>
+            <p><strong>Email:</strong> {{ user.email or 'Не указан' }}</p>
+            <p><strong>Кошелек:</strong> <code
+                    style="background: #eee; padding: 2px 4px;">{{ user.get_wallet() }}</code></p>
+            <p><strong>Баланс:</strong> <strong style="color: var(--success-color);">{{ user.get_balance() }} ₽</strong>
+            </p>
+        </div>
+
+        <!-- Eating Status Today -->
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 8px;">
+            <h3>Статус питания (Сегодня)</h3>
+            {% set meals = user.get_today_meals() %}
+            <div style="display: flex; gap: 10px;">
+                <div
+                    style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; text-align: center; background: {% if meals['Завтрак'] %}#e6fffa{% else %}#fff5f5{% endif %};">
+                    <strong>Завтрак</strong><br>
+                    {% if meals['Завтрак'] %}
+                    <span style="color: var(--success-color);"><i class="fas fa-check"></i> Получен</span>
+                    {% else %}
+                    <span style="color: var(--danger-color);"><i class="fas fa-times"></i> Не получен</span>
+                    {% endif %}
+                </div>
+                <div
+                    style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; text-align: center; background: {% if meals['Обед'] %}#e6fffa{% else %}#fff5f5{% endif %};">
+                    <strong>Обед</strong><br>
+                    {% if meals['Обед'] %}
+                    <span style="color: var(--success-color);"><i class="fas fa-check"></i> Получен</span>
+                    {% else %}
+                    <span style="color: var(--danger-color);"><i class="fas fa-times"></i> Не получен</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription -->
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 8px;">
+            <h3>Подписка</h3>
+            {% if user.is_subscription_active() %}
+            <div style="color: var(--success-color);">
+                <i class="fas fa-check-circle"></i> Активна<br>
+                <small>Истекает: {{ user.get_subscription_expiration().strftime('%d.%m.%Y') }}</small>
+            </div>
+            {% else %}
+            <div style="color: #777;">
+                <i class="fas fa-times-circle"></i> Не активна
+                {% if user.subscription %}
+                <br><small style="color: var(--danger-color);">Истекла: {{
+                    user.get_subscription_expiration().strftime('%d.%m.%Y') }}</small>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Preferences & Allergens -->
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 8px;">
+            <h3>Особенности</h3>
+            <p><strong>Аллергены:</strong> {{ user.allergen or 'Нет' }}</p>
+            <p><strong>Предпочтения:</strong> {{ user.preferences or 'Нет' }}</p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

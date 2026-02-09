@@ -1,1 +1,43 @@
-<h1>Главная страница</h1>
+{% extends "base.html" %}
+
+{% block title %}Главная - Вкусная Столовая{% endblock %}
+
+{% block content %}
+<section class="hero-section" style="text-align: center; padding: 4rem 0;">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem; color: var(--primary-color);">Добро пожаловать в нашу Столовую!
+    </h1>
+    <p style="font-size: 1.2rem; margin-bottom: 2rem; color: #555;">Свежие блюда каждый день, приготовленные с любовью.
+    </p>
+
+    <div style="display: flex; gap: 20px; justify-content: center;">
+        <a href="{{ url_for('menu') }}" class="btn btn-primary" style="font-size: 1.2rem; padding: 15px 30px;">
+            <i class="fas fa-book-open"></i> Посмотреть меню
+        </a>
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('register') }}" class="btn btn-outline" style="font-size: 1.2rem; padding: 15px 30px;">
+            <i class="fas fa-user-plus"></i> Присоединиться
+        </a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="features-section" style="margin-top: 4rem;">
+    <div class="grid">
+        <div class="card" style="text-align: center;">
+            <i class="fas fa-carrot" style="font-size: 3rem; color: var(--success-color); margin-bottom: 20px;"></i>
+            <h3>Свежие Продукты</h3>
+            <p>Мы используем только свежие и качественные ингредиенты от проверенных поставщиков.</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <i class="fas fa-heart" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 20px;"></i>
+            <h3>С Любовью</h3>
+            <p>Наши повара готовят каждое блюдо как для себя, вкладывая душу и мастерство.</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <i class="fas fa-wallet" style="font-size: 3rem; color: var(--secondary-color); margin-bottom: 20px;"></i>
+            <h3>Доступные Цены</h3>
+            <p>Вкусная еда должна быть доступной каждому. Мы держим цены на комфортном уровне.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,141 +1,168 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Личный кабинет</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            background-color: #f4f4f9;
-            display: flex;
-            justify-content: center;
-            padding: 50px;
-        }
+{% block title %}Личный кабинет - Вкусная Столовая{% endblock %}
 
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            width: 400px;
-        }
+{% block content %}
+<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); align-items: start;">
 
-        h2 {
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            color: #333;
-        }
-
-        .info-group {
-            margin: 15px 0;
-        }
-
-        .label {
-            font-weight: bold;
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .value {
-            font-family: monospace;
-            background: #eee;
-            padding: 5px;
-            border-radius: 4px;
-            display: block;
-            margin-top: 5px;
-            word-break: break-all;
-        }
-
-        .btn-logout {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #e74c3c;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .btn-logout:hover {
-            background: #c0392b;
-        }
-    </style>
-</head>
-
-<body>
-
+    <!-- Profile Card -->
     <div class="card">
-        <h2>Профиль пользователя</h2>
-
-        <div class="info-group">
-            <span class="label">Никнейм:</span>
-            <span class="value">{{ current_user.login }}</span>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div
+                style="background-color: var(--light-color); width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                <i class="fas fa-user" style="font-size: 3rem; color: var(--primary-color);"></i>
+            </div>
+            <h2 style="margin: 0;">{{ current_user.login }}</h2>
+            <span
+                style="background-color: var(--secondary-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; text-transform: uppercase; font-weight: 600;">
+                {{ current_user.role }}
+            </span>
         </div>
 
-        <div class="info-group">
-            <span class="label">Роль:</span>
-            <span class="value">{{ current_user.role }}</span>
-        </div>
-
-        <div class="info-group">
-            <span class="label">Ключ кошелька (расшифрован):</span>
-            <span class="value">{{ current_user.get_wallet() }}</span>
-        </div>
-
-        <div class="info-group">
-            <span class="label">Баланс кошелька:</span>
-            <span class="value">{{ current_user.get_balance() }}</span>
-        </div>
-
-        <div class="info-group">
-            <span class="label">Пополнить:</span>
-            <form method="POST">
-                <input type="number" name="how_many_on">
-                <button type="submit">Пополнить</button>
-            </form>
-        </div>
-
-        <div class="info-group">
-            <span class="label">Снять:</span>
-            <form method="POST">
-                <input type="number" name="how_many_off">
-                <button type="submit">Снять</button>
-            </form>
-        </div>
-
-        <div>
-            <a href="{{ url_for('history_operation') }}">История операций</a>
-        </div>
-
-        <h3>Редактировать профиль</h3>
-        <form method="POST" action="{{ url_for('account') }}">
-            <div class="info-group">
-                <label for="email" class="label">Email:</label>
-                <input type="email" id="email" name="email" value="{{ current_user.email or '' }}" class="value"
-                    style="width: 100%;">
+        <div style="border-top: 1px solid #eee; padding-top: 20px;">
+            <div style="margin-bottom: 15px;">
+                <span class="form-label" style="margin-bottom: 5px; color: #777;">Ключ кошелька:</span>
+                <code
+                    style="background: #f4f4f4; padding: 5px 10px; border-radius: 4px; display: block; word-break: break-all;">
+                    {{ current_user.get_wallet() }}
+                </code>
             </div>
 
-            <div class="info-group">
-                <label for="allergen" class="label">Аллергены:</label>
-                <input type="text" id="allergen" name="allergen" value="{{ current_user.allergen or '' }}" class="value"
-                    style="width: 100%;">
+            <div style="margin-bottom: 20px;">
+                <span class="form-label" style="margin-bottom: 5px; color: #777;">Баланс:</span>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--success-color);">
+                    {{ current_user.get_balance() }} ₽
+                </div>
             </div>
 
-            <div class="info-group">
-                <label for="preferences" class="label">Предпочтения:</label>
-                <input type="text" id="preferences" name="preferences" value="{{ current_user.preferences or '' }}"
-                    class="value" style="width: 100%;">
+            <!-- Статус питания на сегодня -->
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3 style="text-align: center; margin-bottom: 15px;">Питание сегодня</h3>
+                {% set meals = current_user.get_today_meals() %}
+
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <!-- Завтрак -->
+                    <div
+                        style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; background: {% if meals['Завтрак'] %}#e6fffa{% else %}#fff5f5{% endif %}; border: 1px solid {% if meals['Завтрак'] %}#b2f5ea{% else %}#fed7d7{% endif %};">
+                        <div style="font-weight: bold; margin-bottom: 5px;">Завтрак</div>
+                        {% if meals['Завтрак'] %}
+                        <i class="fas fa-check-circle" style="color: #00705a; font-size: 1.5rem;"></i>
+                        <div style="color: #00705a; font-size: 0.8rem; margin-top: 5px;">Получен</div>
+                        {% else %}
+                        <i class="fas fa-times-circle" style="color: #c53030; font-size: 1.5rem;"></i>
+                        <div style="color: #c53030; font-size: 0.8rem; margin-top: 5px;">Не получен</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Обед -->
+                    <div
+                        style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; background: {% if meals['Обед'] %}#e6fffa{% else %}#fff5f5{% endif %}; border: 1px solid {% if meals['Обед'] %}#b2f5ea{% else %}#fed7d7{% endif %};">
+                        <div style="font-weight: bold; margin-bottom: 5px;">Обед</div>
+                        {% if meals['Обед'] %}
+                        <i class="fas fa-check-circle" style="color: #00705a; font-size: 1.5rem;"></i>
+                        <div style="color: #00705a; font-size: 0.8rem; margin-top: 5px;">Получен</div>
+                        {% else %}
+                        <i class="fas fa-times-circle" style="color: #c53030; font-size: 1.5rem;"></i>
+                        <div style="color: #c53030; font-size: 0.8rem; margin-top: 5px;">Не получен</div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
 
-            <button type="submit"
-                style="margin-top: 10px; padding: 10px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">Сохранить
-                изменения</button>
-        </form>
+            <!-- Wallet Operations -->
+            <div style="display: grid; gap: 10px;">
+                <form method="POST" style="display: flex; gap: 10px;">
+                    <input type="number" name="how_many_on" class="form-control" placeholder="Сумма" min="1" required>
+                    <button type="submit" class="btn btn-success"
+                        style="background-color: var(--success-color); color: white; border: none; min-width: 100px;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </form>
+                <form method="POST" style="display: flex; gap: 10px;">
+                    <input type="number" name="how_many_off" class="form-control" placeholder="Сумма" min="1" required>
+                    <button type="submit" class="btn btn-danger" style="min-width: 100px;">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
 
-        <a href="{{ url_for('logout') }}" class="btn-logout">Выйти из аккаунта</a>
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+            <h3 style="text-align: center; margin-bottom: 15px;">Абонемент</h3>
+
+            {% if current_user.is_subscription_active() %}
+            <div
+                style="background: #e6fffa; color: #00705a; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #b2f5ea;">
+                <i class="fas fa-check-circle" style="font-size: 1.5rem; margin-bottom: 5px; display: block;"></i>
+                <strong>Активен</strong><br>
+                <small>Действует до: {{ current_user.get_subscription_expiration().strftime('%d.%m.%Y') }}</small>
+            </div>
+            {% else %}
+            <div style="text-align: center;">
+                {% if current_user.subscription %}
+                <div
+                    style="background: #fff5f5; color: #c53030; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #fed7d7;">
+                    <i class="fas fa-exclamation-circle"></i> Истёк {{
+                    current_user.get_subscription_expiration().strftime('%d.%m.%Y') }}
+                </div>
+                {% endif %}
+                <p style="color: #666; margin-bottom: 10px;">Питайтесь выгодно с абонементом!</p>
+                <form method="POST">
+                    <input type="hidden" name="action" value="buy_subscription">
+                    <button type="submit" class="btn btn-primary"
+                        style="width: 100%; background: linear-gradient(45deg, #FF9800, #F44336); border: none;">
+                        <i class="fas fa-crown"></i> Купить за 3000 ₽
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="{{ url_for('history_operation') }}" class="btn btn-outline" style="width: 100%;">
+                <i class="fas fa-history"></i> История операций
+            </a>
+        </div>
     </div>
 
-</body>
+    <!-- Edit Profile Card -->
+    <div class="card">
+        <h2><i class="fas fa-cog"></i> Настройки профиля</h2>
+        <form method="POST" action="{{ url_for('account') }}">
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" value="{{ current_user.email or '' }}" class="form-control"
+                    placeholder="example@mail.com">
+            </div>
 
-</html>
+            <div class="form-group">
+                <label for="allergen" class="form-label">
+                    <i class="fas fa-exclamation-triangle" style="color: var(--danger-color);"></i> Аллергены
+                </label>
+                <input type="text" id="allergen" name="allergen" value="{{ current_user.allergen or '' }}"
+                    class="form-control" placeholder="Например: орехи, мед">
+                <small style="color: #888;">Перечислите через запятую</small>
+            </div>
+
+            <div class="form-group">
+                <label for="preferences" class="form-label">
+                    <i class="fas fa-star" style="color: var(--accent-color);"></i> Предпочтения
+                </label>
+                <input type="text" id="preferences" name="preferences" value="{{ current_user.preferences or '' }}"
+                    class="form-control" placeholder="Например: яйца, говядина">
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Сохранить изменения
+            </button>
+        </form>
+
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+
+        <a href="{{ url_for('logout') }}" class="btn btn-outline"
+            style="color: var(--danger-color); border-color: var(--danger-color); width: 100%;">
+            <i class="fas fa-sign-out-alt"></i> Выйти из аккаунта
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -137,6 +137,36 @@ def account():
             except:
                 pass
 
+        if request.form.get("action") == "buy_subscription":
+            from datetime import datetime
+            SUBSCRIPTION_PRICE = 3000
+            
+            # Проверяем, есть ли уже подписка. 
+            # Разрешаем покупку только если подписки нет или она истекла
+            if current_user.is_subscription_active():
+                 flash("У вас уже есть активный абонемент")
+                 return redirect(url_for("account"))
+
+            if current_user.get_balance() >= SUBSCRIPTION_PRICE:
+                try:
+                    # Списываем деньги
+                    current_user.rem_money(SUBSCRIPTION_PRICE)
+                    # Устанавливаем дату подписки
+                    current_user.subscription = datetime.now()
+                    
+                    # Записываем в историю (опционально, если history_operation поддерживает это)
+                    # Пока просто списываем
+                    
+                    db.session.commit()
+                    flash("Абонемент успешно приобретен!")
+                except Exception as e:
+                    db.session.rollback()
+                    flash(f"Ошибка при покупке: {e}")
+            else:
+                flash("Недостаточно средств на балансе")
+            
+            return redirect(url_for("account"))
+
         if "email" in request.form:
             current_user.email = request.form.get("email")
         if "allergen" in request.form:
@@ -192,6 +222,10 @@ def admin_update_role():
     user_id = request.form.get("user_id")
     new_role = request.form.get("new_role")
     
+    if int(user_id) == current_user.id:
+        flash("Нельзя изменить роль самому себе")
+        return redirect(url_for("admin_panel"))
+
     user = User.query.get(user_id)
     if user:
         user.role = new_role
@@ -208,6 +242,10 @@ def admin_update_role():
 def admin_delete_user():
     user_id = request.form.get("user_id")
     
+    if int(user_id) == current_user.id:
+        flash("Нельзя удалить самого себя")
+        return redirect(url_for("admin_panel"))
+
     user = User.query.get(user_id)
     if user:
         db.session.delete(user)

@@ -1,78 +1,130 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Склад</title>
-    <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-    </style>
-</head>
-<body>
-    <h1>Склад продуктов</h1>
-    <a href="/menu">Вернуться в меню</a>
+{% extends "base.html" %}
 
-    <!-- Вывод сообщений (flash) -->
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul style="color: blue;">
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
+{% block title %}Склад - Вкусная Столовая{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1><i class="fas fa-boxes"></i> Склад продуктов</h1>
+    {% if current_user.role != 'admin' %}
+    <a href="{{ url_for('menu') }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Меню
+    </a>
     {% endif %}
-    {% endwith %}
+</div>
 
-    <!-- Форма добавления (только для админа) -->
-    {% if current_user.role == 'admin' %}
-    <div style="margin: 20px 0; padding: 15px; border: 1px solid #ccc; background: #f9f9f9;">
-        <h3>Добавить новый товар</h3>
+<div class="grid" style="grid-template-columns: 3fr 1fr; align-items: start;">
+
+    <!-- Storage Table -->
+    <div class="card">
+        <h2>Список товаров</h2>
+        <div style="overflow-x: auto;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Количество</th>
+                        <th>Цена/ед.</th>
+                        <th>Тип</th>
+                        {% if current_user.role == 'admin' %}
+                        <th>Действия</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in storage_items %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td><strong>{{ item.name }}</strong></td>
+                        <td>
+                            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+                                <span
+                                    style="background: #f1f1f1; padding: 5px 10px; border-radius: 15px; font-weight: 500;">
+                                    {{ item.count }}
+                                </span>
+                                {% if current_user.role in ['admin', 'cook'] %}
+                                <form method="POST" action="{{ url_for('replenish_storage_item', id=item.id) }}"
+                                    style="display: flex; gap: 5px;">
+                                    <input type="number" name="amount" placeholder="+/-"
+                                        style="width: 60px; padding: 2px 5px; font-size: 0.8rem; border: 1px solid #ddd; border-radius: 4px;"
+                                        required>
+                                    <button type="submit" class="btn btn-success"
+                                        style="padding: 2px 8px; font-size: 0.8rem;" title="Пополнить">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>{{ item.price_per_unit or 0 }} ₽</td>
+                        <td>{{ item.type_of_product }}</td>
+                        {% if current_user.role == 'admin' %}
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="{{ url_for('edit_storage_item', id=item.id) }}" class="btn btn-outline"
+                                    style="padding: 5px 10px; font-size: 0.8rem;" title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('delete_storage_item', id=item.id) }}"
+                                    onclick="return confirm('Вы уверены, что хотите удалить {{ item.name }}?');"
+                                    class="btn btn-outline"
+                                    style="padding: 5px 10px; font-size: 0.8rem; color: var(--danger-color); border-color: var(--danger-color);"
+                                    title="Удалить">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{% if current_user.role == 'admin' %}5{% else %}4{% endif %}"
+                            style="text-align: center; padding: 20px; color: #777;">
+                            Склад пуст
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Item Form (Admin and Cook) -->
+    {% if current_user.role in ['admin', 'cook'] %}
+    <div class="card" style="position: sticky; top: 100px;">
+        <h3><i class="fas fa-plus-circle"></i> Добавить товар</h3>
         <form method="POST" action="/storage">
-            <input type="text" name="name" placeholder="Название" required>
-            <input type="number" name="count" placeholder="Количество" required>
-            <select name="type_of_product">
-                <option value="продукт">Продукт</option>
-                <option value="блюдо">Блюдо</option>
-            </select>
-            <button type="submit">Добавить</button>
+            <div class="form-group">
+                <label class="form-label">Название</label>
+                <input type="text" name="name" class="form-control" required placeholder="Напр. Мука">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Количество</label>
+                <input type="number" name="count" class="form-control" required placeholder="0">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Цена за единицу (₽)</label>
+                <input type="number" name="price_per_unit" class="form-control" placeholder="0">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Тип</label>
+                <div class="select-wrapper">
+                    <select name="type_of_product" class="form-control">
+                        <option value="продукт">Продукт</option>
+                        <option value="блюдо">Блюдо</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Добавить
+            </button>
         </form>
     </div>
     {% endif %}
-    
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Название</th>
-                <th>Количество</th>
-                <th>Тип</th>
-                {% if current_user.role == 'admin' %}
-                <th>Действия</th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in storage_items %}
-            <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.name }}</td>
-                <td>{{ item.count }}</td>
-                <td>{{ item.type_of_product }}</td>
-                {% if current_user.role == 'admin' %}
-                <td>
-                    <a href="/storage/edit/{{ item.id }}">Ред.</a> | 
-                    <a href="/storage/delete/{{ item.id }}" onclick="return confirm('Удалить?');" style="color: red;">Удал.</a>
-                </td>
-                {% endif %}
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="{% if current_user.role == 'admin' %}5{% else %}4{% endif %}">Склад пуст.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+
+</div>
+{% endblock %}

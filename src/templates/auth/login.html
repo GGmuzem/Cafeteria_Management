@@ -1,38 +1,43 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход</title>
-</head>
+{% block title %}Вход - Вкусная Столовая{% endblock %}
 
-<body>
-    <h2>Вход в систему</h2>
-
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <ul style="color: red;">
-        {% for message in messages %}
-        <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    {% endwith %}
-
-    <form method="POST" action="{{ url_for('login') }}">
-        <div>
-            <label for="login">Логин:</label>
-            <input type="text" id="login" name="login" required>
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
+    <div class="card" style="width: 100%; max-width: 400px; padding: 40px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <i class="fas fa-user-circle" style="font-size: 4rem; color: var(--primary-color);"></i>
+            <h2 style="margin-top: 10px;">Вход</h2>
         </div>
-        <br>
-        <div>
-            <label for="password">Пароль:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <br>
-        <button type="submit">Войти</button>
-    </form>
-</body>
 
-</html>
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="login" class="form-label">Логин</label>
+                <div style="position: relative;">
+                    <i class="fas fa-user" style="position: absolute; left: 15px; top: 15px; color: #aaa;"></i>
+                    <input type="text" id="login" name="login" class="form-control" style="padding-left: 40px;" required
+                        placeholder="Введите ваш логин">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Пароль</label>
+                <div style="position: relative;">
+                    <i class="fas fa-lock" style="position: absolute; left: 15px; top: 15px; color: #aaa;"></i>
+                    <input type="password" id="password" name="password" class="form-control"
+                        style="padding-left: 40px;" required placeholder="Введите пароль">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                Войти
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 20px; font-size: 0.9rem;">
+            Нет аккаунта? <a href="{{ url_for('register') }}"
+                style="color: var(--secondary-color); font-weight: 600;">Зарегистрироваться</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -87,44 +87,49 @@ def order():
         else:
             flash(f"Ученик с логином '{student_login}' не найден")
     
-    # Фильтрация по типу (Завтрак/Обед)
-    meal_type = request.args.get('meal_type')
-    query = Menu.query
-    if meal_type:
-        query = query.filter_by(meal_type=meal_type)
-    
-    menu_items = query.all()
-    
-    items_data = []
-    # Получаем список аллергенов пользователя
-    if target_user:
-        user_allergens = [a.strip().lower() for a in (target_user.allergen or "").split(',') if a.strip()]
-    else:
+    # Подготовка данных для меню (Завтрак и Обед)
+    meals_data = {}
+    for meal_type in ['Завтрак', 'Обед']:
+        items = Menu.query.filter_by(meal_type=meal_type).all()
+        total_price = sum(item.price for item in items)
+        
+        # Получаем аллергены (для проверки пригодности)
         user_allergens = []
-    
-    for item in menu_items:
-        is_suitable = True
-        warning = None
+        if target_user:
+            user_allergens = [a.strip().lower() for a in (target_user.allergen or "").split(',') if a.strip()]
         
-        # Получаем состав блюда в виде строки для поиска
-        if isinstance(item.composition, dict):
-            ingredients = item.composition.get('ingredients', [])
-            ing_str = ", ".join(ingredients).lower() if isinstance(ingredients, list) else str(ingredients).lower()
-        else:
-            ing_str = str(item.composition).lower()
+        items_list = []
+        has_allergen_warning = False
+
+        for item in items:
+            is_suitable = True
+            warning = None
             
-        # Проверяем совпадения с аллергенами
-        for allergen in user_allergens:
-            if allergen in ing_str:
-                is_suitable = False
-                warning = f"Содержит аллерген: {allergen}"
-                break
-        
-        items_data.append({
-            'obj': item,
-            'is_suitable': is_suitable,
-            'warning': warning
-        })
+            # Проверка аллергенов
+            if isinstance(item.composition, dict):
+                ingredients = item.composition.get('ingredients', [])
+                ing_str = ", ".join(ingredients).lower() if isinstance(ingredients, list) else str(ingredients).lower()
+            else:
+                ing_str = str(item.composition).lower()
+                
+            for allergen in user_allergens:
+                if allergen in ing_str:
+                    is_suitable = False
+                    warning = f"Аллерген: {allergen}"
+                    has_allergen_warning = True
+                    break
+            
+            items_list.append({
+                'obj': item,
+                'is_suitable': is_suitable,
+                'warning': warning
+            })
+
+        meals_data[meal_type] = {
+            'dishes': items_list,
+            'total_price': total_price,
+            'has_warning': has_allergen_warning
+        }
 
     if request.method == 'POST':
         student_login_post = request.form.get('student_login')
@@ -132,23 +137,21 @@ def order():
         
         if not target_user_post:
             flash("Ошибка: Ученик не выбран или не найден.")
-            return redirect(url_for('order', meal_type=meal_type))
+            return redirect(url_for('order', student_login=student_login_post))
 
-        food_ids = request.form.getlist('food_ids')
-        if not food_ids:
-            flash("Вы не выбрали ни одного блюда.")
-            return redirect(url_for('order', meal_type=meal_type, student_login=student_login_post))
-            
-        success_count = 0
-        fail_count = 0
-        
-        for fid in food_ids:
-            if buy_food_service(target_user_post.id, int(fid)):
-                success_count += 1
-            else:
-                fail_count += 1
-        
-        flash(f"Заказано: {success_count}. Ошибок (недостаточно средств или лимит на 1 порцию): {fail_count}.")
-        return redirect(url_for('order', meal_type=meal_type, student_login=student_login_post))
+        meal_type_to_buy = request.form.get('meal_type')
+        if not meal_type_to_buy:
+             flash("Ошибка: Тип питания не выбран.")
+             return redirect(url_for('order', student_login=student_login_post))
 
-    return render_template('order.html', balance=balance, items=items_data, current_meal_type=meal_type, target_user=target_user)
+        from service import buy_meal_service
+        success, message = buy_meal_service(target_user_post.id, meal_type_to_buy)
+        
+        if success:
+            flash(f"Успешно: {message}")
+        else:
+            flash(f"Ошибка: {message}")
+        
+        return redirect(url_for('order', student_login=student_login_post))
+
+    return render_template('order.html', balance=balance, meals=meals_data, target_user=target_user)
