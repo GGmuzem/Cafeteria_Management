@@ -7,12 +7,15 @@
     Изменение роли для пользователя ✅
 """
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, send_file
 from flask_login import login_required, current_user
 from config import db, app
 from database.users import User
 from database.requests import Requests
 from database.history import history_operation
+import io
+import csv
+from datetime import datetime
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin_requests")
 
@@ -114,3 +117,49 @@ def admin_stats():
     }
     
     return render_template('admin_history.html', history=history, stats=stats)
+
+
+@admin_bp.route("/export_stats_csv")
+@login_required
+def export_stats_csv():
+    if current_user.role != "admin":
+        return "Доступ запрещён", 403
+
+    import io
+    import csv
+    from flask import send_file
+    from datetime import datetime
+
+    # Создаем буфер в памяти
+    proxy = io.StringIO()
+    writer = csv.writer(proxy, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+    # Заголовки
+    headers = ["ID", "Пользователь", "Роль", "Тип операции", "Сумма", "Дата и время"]
+    writer.writerow(headers)
+
+    # Получаем данные
+    history = db.session.query(history_operation, User).join(User, history_operation.user == User.id).order_by(history_operation.date.desc()).all()
+
+    for record, user in history:
+        writer.writerow([
+            record.id,
+            user.login,
+            user.role,
+            record.type_of_transaction,
+            record.amount,
+            record.date.strftime('%d.%m.%Y %H:%M')
+        ])
+
+    # Создаем байтовый поток из строкового
+    mem = io.BytesIO()
+    mem.write(proxy.getvalue().encode('utf-8-sig')) # BOM для корректного открытия в Excel
+    mem.seek(0)
+    proxy.close()
+
+    return send_file(
+        mem,
+        as_attachment=True,
+        download_name=f"history_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+        mimetype="text/csv"
+    )
