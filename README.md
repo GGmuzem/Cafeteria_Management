@@ -91,6 +91,9 @@
     venv\Scripts\activate     # Для Windows
     ```
 
+    *Если выдает ошибку "выполнение сценариев отключено в этой  
+системе", то введите в powershell: Set-ExecutionPolicy RemoteSigned и повторите команду активации виртуального окружения*
+
 2.  **Установите зависимости:**
     ```bash
     pip install -r requirements.txt
