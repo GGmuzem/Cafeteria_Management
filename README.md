@@ -47,10 +47,11 @@
 Проект поддерживает запуск через Docker, что является рекомендуемым способом.
 
 ### Вариант 1: Запуск через Docker (Рекомендуется)
+#### ВНИМАНИЕ: Для этого способа вам нужен скачанный Docker
 
 1.  **Клонируйте репозиторий:**
     ```bash
-    git clone [https://github.com/GGmuzem/Cafeteria_Management.git](https://github.com/GGmuzem/Cafeteria_Management.git)
+    git clone https://github.com/GGmuzem/Cafeteria_Management.git
     cd Cafeteria_Management
     ```
 
