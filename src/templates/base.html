@@ -38,6 +38,7 @@
 
                 {% if current_user.role in ['admin', 'cook'] %}
                 <a href="{{ url_for('storage') }}" class="nav-link">Склад</a>
+                <a href="{{ url_for('order') }}" class="nav-link">Выдача питания</a>
                 {% endif %}
 
                 <a href="{{ url_for('logout') }}" class="nav-link btn-logout">Выйти</a>

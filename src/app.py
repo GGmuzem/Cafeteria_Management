@@ -137,6 +137,36 @@ def account():
             except:
                 pass
 
+        if request.form.get("action") == "buy_subscription":
+            from datetime import datetime
+            SUBSCRIPTION_PRICE = 3000
+            
+            # Проверяем, есть ли уже подписка. 
+            # (Логика может быть сложнее, например, продление. Пока просто блокируем повторную покупку если есть)
+            if current_user.subscription:
+                 flash("У вас уже есть активный абонемент")
+                 return redirect(url_for("account"))
+
+            if current_user.get_balance() >= SUBSCRIPTION_PRICE:
+                try:
+                    # Списываем деньги
+                    current_user.rem_money(SUBSCRIPTION_PRICE)
+                    # Устанавливаем дату подписки
+                    current_user.subscription = datetime.now()
+                    
+                    # Записываем в историю (опционально, если history_operation поддерживает это)
+                    # Пока просто списываем
+                    
+                    db.session.commit()
+                    flash("Абонемент успешно приобретен!")
+                except Exception as e:
+                    db.session.rollback()
+                    flash(f"Ошибка при покупке: {e}")
+            else:
+                flash("Недостаточно средств на балансе")
+            
+            return redirect(url_for("account"))
+
         if "email" in request.form:
             current_user.email = request.form.get("email")
         if "allergen" in request.form:

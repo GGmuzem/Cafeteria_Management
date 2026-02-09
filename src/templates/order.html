@@ -38,74 +38,65 @@
     </div>
 </div>
 
-<!-- Filter Meal Type -->
-<div style="margin-bottom: 20px; display: flex; gap: 10px;">
-    <a href="{{ url_for('order', student_login=target_user.login) }}"
-        class="btn {% if not current_meal_type %}btn-primary{% else %}btn-outline{% endif %}">Все</a>
-    <a href="{{ url_for('order', meal_type='Завтрак', student_login=target_user.login) }}"
-        class="btn {% if current_meal_type == 'Завтрак' %}btn-primary{% else %}btn-outline{% endif %}">Завтрак</a>
-    <a href="{{ url_for('order', meal_type='Обед', student_login=target_user.login) }}"
-        class="btn {% if current_meal_type == 'Обед' %}btn-primary{% else %}btn-outline{% endif %}">Обед</a>
-</div>
+<div class="grid" style="grid-template-columns: 1fr 1fr; gap: 30px;">
+    {% for meal_type, data in meals.items() %}
+    <div class="card" style="display: flex; flex-direction: column; height: 100%;">
+        <div
+            style="border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0;">{{ meal_type }}</h2>
+            <span style="font-size: 1.5em; font-weight: bold; color: var(--primary-color);">{{ data.total_price }}
+                ₽</span>
+        </div>
 
-<form method="POST">
-    <input type="hidden" name="student_login" value="{{ target_user.login }}">
-
-    <div style="margin-bottom: 20px;">
-        <button type="button" class="btn btn-outline btn-sm" onclick="toggleAll()">
-            <i class="fas fa-check-double"></i> Выбрать все / Снять выделение
-        </button>
-    </div>
-
-    <div class="grid menu-container">
-        {% for item in items %}
-        <div class="card menu-item"
-            style="position: relative; {% if not item.is_suitable %}border-color: var(--danger-color); background-color: #fff5f5;{% endif %}">
-            <div style="position: absolute; top: 15px; right: 15px;">
-                <input type="checkbox" name="food_ids" value="{{ item.obj.id }}" class="food-checkbox"
-                    style="transform: scale(1.5);">
-            </div>
-
-            <div class="menu-content">
-                <h3 style="margin-right: 30px;">{{ item.obj.name }}</h3>
-                <span class="menu-item-price">{{ item.obj.price }} ₽</span>
-                <p style="color: #666; font-size: 0.9rem; margin-top: 10px;">
-                    <span class="badge" style="margin-right: 5px;">{{ item.obj.meal_type }}</span>
-                    {% if item.obj.composition is mapping %}
-                    {{ item.obj.composition.get('ingredients', []) | join(', ') }}
-                    {% else %}
-                    {{ item.obj.composition }}
+        <div style="flex-grow: 1; overflow-y: auto; max-height: 400px; padding-right: 5px;">
+            {% if data.dishes %}
+            <ul style="list-style: none; padding: 0;">
+                {% for item in data.dishes %}
+                <li style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <strong>{{ item.obj.name }}</strong>
+                        <span>{{ item.obj.price }} ₽</span>
+                    </div>
+                    <div style="font-size: 0.85em; color: #666;">
+                        {% if item.obj.composition is mapping %}
+                        {{ item.obj.composition.get('ingredients', []) | join(', ') }}
+                        {% else %}
+                        {{ item.obj.composition }}
+                        {% endif %}
+                    </div>
+                    {% if not item.is_suitable %}
+                    <div style="color: var(--danger-color); font-size: 0.8em; margin-top: 2px;">
+                        <i class="fas fa-exclamation-triangle"></i> {{ item.warning }}
+                    </div>
                     {% endif %}
-                </p>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p style="color: #666; font-style: italic;">Меню пусто.</p>
+            {% endif %}
+        </div>
 
-                {% if not item.is_suitable %}
-                <div style="margin-top: 10px; color: var(--danger-color); font-weight: bold; font-size: 0.9rem;">
-                    <i class="fas fa-exclamation-triangle"></i> {{ item.warning }}
-                </div>
-                {% else %}
-                <div style="margin-top: 10px; color: var(--success-color); font-weight: bold; font-size: 0.9rem;">
-                    <i class="fas fa-check-circle"></i> Подходит
-                </div>
-                {% endif %}
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+            {% if data.has_warning %}
+            <div class="alert alert-warning" style="margin-bottom: 15px; padding: 10px; font-size: 0.9em;">
+                <i class="fas fa-exclamation-triangle"></i> Внимание! В составе есть аллергены ученика.
             </div>
-        </div>
-        {% else %}
-        <div class="card" style="grid-column: 1 / -1; text-align: center;">
-            <p>Меню пусто.</p>
-        </div>
-        {% endfor %}
-    </div>
+            {% endif %}
 
-    {% if items %}
-    <div
-        style="margin-top: 30px; position: sticky; bottom: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-weight: 500;">Выберите блюда и нажмите кнопку</span>
-        <button type="submit" class="btn btn-success" style="font-size: 1.1rem; padding: 10px 30px;">
-            <i class="fas fa-shopping-cart"></i> Купить выбранное
-        </button>
+            <form method="POST" action="{{ url_for('order') }}">
+                <input type="hidden" name="student_login" value="{{ target_user.login }}">
+                <input type="hidden" name="meal_type" value="{{ meal_type }}">
+
+                <button type="submit" class="btn btn-success" style="width: 100%;" {% if not data.dishes %}disabled{%
+                    endif %}>
+                    <i class="fas fa-utensils"></i> Выдать {{ meal_type }}
+                </button>
+            </form>
+        </div>
     </div>
-    {% endif %}
-</form>
+    {% endfor %}
+</div>
 
 {% else %}
 <div class="card" style="text-align: center; padding: 50px;">

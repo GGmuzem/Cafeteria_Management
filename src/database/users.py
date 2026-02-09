@@ -18,7 +18,7 @@ class User(db.Model, UserMixin):
     wallet = db.Column(db.String(255), nullable=False, unique=True)
     allergen = db.Column(db.String(255), nullable=True)
     preferences = db.Column(db.String(255), nullable=True)
-
+    subscription = db.Column(db.DateTime(), nullable=True)
     
     def __init__(self, login, password, role="student", wallet=None, health=None):
         self.login = login
@@ -92,3 +92,9 @@ class User(db.Model, UserMixin):
 
     def get_history_operation(self): # Получаем историю опреаций (недавних)
         return history_operation.query.filter_by(user=self.id).order_by(history_operation.date.desc()).all()
+
+    def get_subscription_expiration(self):
+        if self.subscription:
+            from datetime import timedelta
+            return self.subscription + timedelta(days=30)
+        return None
