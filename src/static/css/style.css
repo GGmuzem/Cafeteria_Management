@@ -316,29 +316,7 @@ h6 {
     font-weight: 600;
 }
 
-/* Footer */
-.footer {
-    background-color: var(--dark-color);
-    color: white;
-    padding: 2rem 0;
-    margin-top: auto;
-}
 
-.footer-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.social-links a {
-    color: white;
-    font-size: 1.5rem;
-    margin-left: 15px;
-}
-
-.social-links a:hover {
-    color: var(--primary-color);
-}
 
 /* Responsive */
 @media (max-width: 768px) {
