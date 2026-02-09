@@ -10,6 +10,30 @@
     </a>
 </div>
 
+<div class="card" style="margin-bottom: 20px;">
+    <h2>Статистика посещаемости</h2>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div
+            style="flex: 1; padding: 15px; background: #e6fffa; border-radius: 8px; border: 1px solid #b2f5ea; text-align: center;">
+            <div style="font-size: 0.9em; color: #00705a; margin-bottom: 5px;">За 24 часа</div>
+            <div style="font-size: 2em; font-weight: bold; color: #004d40;">{{ stats.day }}</div>
+            <div style="font-size: 0.8em; color: #00705a;">чел.</div>
+        </div>
+        <div
+            style="flex: 1; padding: 15px; background: #ebf8ff; border-radius: 8px; border: 1px solid #bee3f8; text-align: center;">
+            <div style="font-size: 0.9em; color: #2c5282; margin-bottom: 5px;">За неделю</div>
+            <div style="font-size: 2em; font-weight: bold; color: #2a4365;">{{ stats.week }}</div>
+            <div style="font-size: 0.8em; color: #2c5282;">чел.</div>
+        </div>
+        <div
+            style="flex: 1; padding: 15px; background: #faf5ff; border-radius: 8px; border: 1px solid #e9d8fd; text-align: center;">
+            <div style="font-size: 0.9em; color: #553c9a; margin-bottom: 5px;">За месяц</div>
+            <div style="font-size: 2em; font-weight: bold; color: #44337a;">{{ stats.month }}</div>
+            <div style="font-size: 0.8em; color: #553c9a;">чел.</div>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div style="overflow-x: auto;">
         <table class="table">
@@ -30,19 +54,19 @@
                     <td><strong>{{ user.login }}</strong></td>
                     <td><span class="badge">{{ user.role }}</span></td>
                     <td>
-                        {% if record.type_of_transaction == 'deposit' %}
+                        {% if record.type_of_transaction in ['deposit', 'Начисление'] %}
                         <span style="color: var(--success-color);"><i class="fas fa-arrow-up"></i> Пополнение</span>
-                        {% elif record.type_of_transaction == 'withdrawal' %}
+                        {% elif record.type_of_transaction in ['withdrawal', 'Снятие'] %}
                         <span style="color: var(--danger-color);"><i class="fas fa-arrow-down"></i> Списание</span>
                         {% else %}
                         {{ record.type_of_transaction }}
                         {% endif %}
                     </td>
                     <td style="font-weight: bold;">
-                        {% if record.type_of_transaction == 'deposit' %}
-                        +{{ record.amount }} ₽
+                        {% if record.type_of_transaction in ['deposit', 'Начисление'] %}
+                        <span style="color: var(--success-color);">+{{ record.amount | abs }} ₽</span>
                         {% else %}
-                        -{{ record.amount }} ₽
+                        <span style="color: var(--danger-color);">-{{ record.amount | abs }} ₽</span>
                         {% endif %}
                     </td>
                     <td style="color: #777;">{{ record.date.strftime('%d.%m.%Y %H:%M') }}</td>

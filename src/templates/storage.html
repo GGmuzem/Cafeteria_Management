@@ -24,6 +24,7 @@
                         <th>ID</th>
                         <th>Название</th>
                         <th>Количество</th>
+                        <th>Цена/ед.</th>
                         <th>Тип</th>
                         {% if current_user.role == 'admin' %}
                         <th>Действия</th>
@@ -55,6 +56,7 @@
                                 {% endif %}
                             </div>
                         </td>
+                        <td>{{ item.price_per_unit or 0 }} ₽</td>
                         <td>{{ item.type_of_product }}</td>
                         {% if current_user.role == 'admin' %}
                         <td>
@@ -100,6 +102,11 @@
             <div class="form-group">
                 <label class="form-label">Количество</label>
                 <input type="number" name="count" class="form-control" required placeholder="0">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Цена за единицу (₽)</label>
+                <input type="number" name="price_per_unit" class="form-control" placeholder="0">
             </div>
 
             <div class="form-group">

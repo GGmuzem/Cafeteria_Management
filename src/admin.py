@@ -84,13 +84,33 @@ def user_profile(user_id):
     return render_template("admin/user_profile.html", user=user)
 
 
-@app.route('/admin/history')
+@app.route('/admin/stats')
 @login_required
-def admin_history():
+def admin_stats():
     if current_user.role != 'admin':
         return "Доступ запрещен", 403
+    
+    from datetime import datetime, timedelta
     
     # Запрос всей истории с присоединением таблицы пользователей для получения логина
     history = db.session.query(history_operation, User).join(User, history_operation.user == User.id).order_by(history_operation.date.desc()).all()
     
-    return render_template('admin_history.html', history=history)
+    # Статистика посещаемости (уникальные пользователи, купившие еду)
+    now = datetime.utcnow()
+    day_ago = now - timedelta(days=1)
+    week_ago = now - timedelta(weeks=1)
+    month_ago = now - timedelta(days=30)
+    
+    def get_unique_visitors(since_date):
+        return db.session.query(history_operation.user).filter(
+            history_operation.date >= since_date,
+            history_operation.type_of_transaction.in_(['Завтрак', 'Обед'])
+        ).distinct().count()
+
+    stats = {
+        'day': get_unique_visitors(day_ago),
+        'week': get_unique_visitors(week_ago),
+        'month': get_unique_visitors(month_ago)
+    }
+    
+    return render_template('admin_history.html', history=history, stats=stats)

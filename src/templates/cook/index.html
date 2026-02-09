@@ -30,8 +30,17 @@
                         </div>
                         <textarea name="composition" class="form-control"
                             rows="2">{{ edit_menu.composition }}</textarea>
-                        <input type="number" name="weight" min="1" step="1" value="{{ m.weight if m.weight else '' }}"
-                            class="form-control" placeholder="Вес (г)">
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input type="number" name="weight" min="1" step="1"
+                                value="{{ m.weight if m.weight else '' }}" class="form-control" placeholder="Вес (г)">
+                            <select name="meal_type" class="form-control">
+                                <option value="Завтрак" {% if edit_menu.meal_type=='Завтрак' %}selected{% endif %}>
+                                    Завтрак</option>
+                                <option value="Обед" {% if edit_menu.meal_type=='Обед' %}selected{% endif %}>Обед
+                                </option>
+                            </select>
+                        </div>
 
                         <div style="display: flex; gap: 10px;">
                             <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>

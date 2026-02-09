@@ -36,10 +36,12 @@ def storage():
 
         try:
             # Формируем данные для функции добавления
+            price_per_unit = request.form.get('price_per_unit')
             data = {
                 "name": name,
                 "count": int(count) if count else 0,
-                "type_of_product": type_of_product
+                "type_of_product": type_of_product,
+                "price_per_unit": int(price_per_unit) if price_per_unit else 0
             }
             result = add_product(data) # Используем существующую функцию
             flash(result)
@@ -58,7 +60,8 @@ def add_product(data: dict):
         new_item = Storage(
             name=validated_data.name,
             count=validated_data.count,
-            type_of_product=validated_data.type_of_product
+            type_of_product=validated_data.type_of_product,
+            price_per_unit=data.get("price_per_unit", 0)
         )
         db.session.add(new_item)
         db.session.commit()
@@ -97,6 +100,11 @@ def edit_storage_item(id):
             flash("Количество должно быть числом")
             return render_template('edit_storage.html', item=item)
             
+        try:
+            item.price_per_unit = int(request.form.get('price_per_unit'))
+        except (ValueError, TypeError):
+            pass # Ignore if invalid
+
         item.type_of_product = request.form.get('type_of_product')
         db.session.commit()
         flash("Товар успешно обновлен")
