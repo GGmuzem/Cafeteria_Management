@@ -98,3 +98,24 @@ class User(db.Model, UserMixin):
             from datetime import timedelta
             return self.subscription + timedelta(days=30)
         return None
+
+    def get_today_meals(self):
+        """
+        Проверяет, ел ли ученик сегодня Завтрак и Обед.
+        Возвращает словарь {'Завтрак': bool, 'Обед': bool}
+        """
+        start_of_day = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # Получаем все операции за сегодня
+        today_ops = history_operation.query.filter(
+            history_operation.user == self.id,
+            history_operation.date >= start_of_day,
+            history_operation.type_of_transaction.in_(['Завтрак', 'Обед'])
+        ).all()
+        
+        meals_status = {'Завтрак': False, 'Обед': False}
+        for op in today_ops:
+            if op.type_of_transaction in meals_status:
+                meals_status[op.type_of_transaction] = True
+                
+        return meals_status

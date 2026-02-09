@@ -35,6 +35,40 @@
                 </div>
             </div>
 
+            <!-- Статус питания на сегодня -->
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3 style="text-align: center; margin-bottom: 15px;">Питание сегодня</h3>
+                {% set meals = current_user.get_today_meals() %}
+
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <!-- Завтрак -->
+                    <div
+                        style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; background: {% if meals['Завтрак'] %}#e6fffa{% else %}#fff5f5{% endif %}; border: 1px solid {% if meals['Завтрак'] %}#b2f5ea{% else %}#fed7d7{% endif %};">
+                        <div style="font-weight: bold; margin-bottom: 5px;">Завтрак</div>
+                        {% if meals['Завтрак'] %}
+                        <i class="fas fa-check-circle" style="color: #00705a; font-size: 1.5rem;"></i>
+                        <div style="color: #00705a; font-size: 0.8rem; margin-top: 5px;">Получен</div>
+                        {% else %}
+                        <i class="fas fa-times-circle" style="color: #c53030; font-size: 1.5rem;"></i>
+                        <div style="color: #c53030; font-size: 0.8rem; margin-top: 5px;">Не получен</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Обед -->
+                    <div
+                        style="flex: 1; text-align: center; padding: 10px; border-radius: 8px; background: {% if meals['Обед'] %}#e6fffa{% else %}#fff5f5{% endif %}; border: 1px solid {% if meals['Обед'] %}#b2f5ea{% else %}#fed7d7{% endif %};">
+                        <div style="font-weight: bold; margin-bottom: 5px;">Обед</div>
+                        {% if meals['Обед'] %}
+                        <i class="fas fa-check-circle" style="color: #00705a; font-size: 1.5rem;"></i>
+                        <div style="color: #00705a; font-size: 0.8rem; margin-top: 5px;">Получен</div>
+                        {% else %}
+                        <i class="fas fa-times-circle" style="color: #c53030; font-size: 1.5rem;"></i>
+                        <div style="color: #c53030; font-size: 0.8rem; margin-top: 5px;">Не получен</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
             <!-- Wallet Operations -->
             <div style="display: grid; gap: 10px;">
                 <form method="POST" style="display: flex; gap: 10px;">
