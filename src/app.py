@@ -33,6 +33,12 @@ def create_db():
     if uri.startswith('sqlite:///'):
         db_path = uri.replace('sqlite:///', '')
 
+        # Если база данных — это папка (ошибка Docker), удаляем её
+        if os.path.isdir(db_path):
+            import shutil
+            print(f"Removing invalid database directory: {db_path}")
+            shutil.rmtree(db_path)
+
         if not os.path.exists(db_path):
             print(f"Creating database at: {db_path}")
             with app.app_context():
