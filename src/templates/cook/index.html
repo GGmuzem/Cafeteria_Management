@@ -88,6 +88,8 @@
                         <tr>
                             <th>Продукт</th>
                             <th>Кол-во</th>
+                            <th>Цена/шт</th>
+                            <th>Итого</th>
                             <th>Статус</th>
                             <th>Дата</th>
                         </tr>
@@ -97,6 +99,8 @@
                         <tr>
                             <td>{{ req.product }}</td>
                             <td>{{ req.amount }}</td>
+                            <td>{{ req.price_per_unit or 0 }} ₽</td>
+                            <td>{{ (req.amount or 0) * (req.price_per_unit or 0) }} ₽</td>
                             <td>
                                 {% if req.status == 'pending' %}
                                 <span style="color: orange; font-weight: 600;">Ожидание</span>
@@ -175,6 +179,11 @@
                 <div class="form-group">
                     <label class="form-label">Количество</label>
                     <input type="number" name="amount" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Цена за штуку (₽)</label>
+                    <input type="number" name="price_per_unit" class="form-control" required placeholder="Напр. 50">
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%;">

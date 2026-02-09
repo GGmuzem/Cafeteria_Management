@@ -47,6 +47,10 @@ def admin_requests():
             if req:
                 req.product = request.form.get("product")
                 req.amount = int(request.form.get("amount"))
+                try:
+                    req.price_per_unit = int(request.form.get("price_per_unit"))
+                except (ValueError, TypeError):
+                    pass # Ignore if invalid or missing
                 req.status = request.form.get("status")
                 db.session.commit()
 
@@ -65,6 +69,19 @@ def admin_requests():
 
     return render_template("admin/index.html", history=history, requests=requests, users=users, edit_id=edit_id)
     #Изменение роли пользователей
+
+
+@admin_bp.route("/user/<int:user_id>")
+@login_required
+def user_profile(user_id):
+    if current_user.role != "admin":
+        return "Доступ запрещён", 403
+    
+    user = User.query.get(user_id)
+    if not user:
+        return "Пользователь не найден", 404
+        
+    return render_template("admin/user_profile.html", user=user)
 
 
 @app.route('/admin/history')

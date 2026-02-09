@@ -19,7 +19,9 @@
                 <tr>
                     <th>ID</th>
                     <th>Продукт</th>
-                    <th>Количество</th>
+                    <th>Кол-во</th>
+                    <th>Цена/шт</th>
+                    <th>Итого</th>
                     <th>Статус</th>
                     <th>Действия</th>
                 </tr>
@@ -39,7 +41,9 @@
                             <input name="product" value="{{ r.product }}" class="form-control" style="width: auto;"
                                 placeholder="Продукт">
                             <input type="number" name="amount" value="{{ r.amount }}" class="form-control"
-                                style="width: 100px;" placeholder="Кол-во">
+                                style="width: 80px;" placeholder="Кол-во">
+                            <input type="number" name="price_per_unit" value="{{ r.price_per_unit }}"
+                                class="form-control" style="width: 80px;" placeholder="Цена">
 
                             <div class="select-wrapper" style="width: auto;">
                                 <select name="status" class="form-control">
@@ -60,6 +64,8 @@
                     <!-- Display Mode -->
                     <td>{{ r.product }}</td>
                     <td>{{ r.amount }}</td>
+                    <td>{{ r.price_per_unit or 0 }} ₽</td>
+                    <td>{{ (r.amount or 0) * (r.price_per_unit or 0) }} ₽</td>
                     <td>
                         {% if r.status == 'pending' %}
                         <span style="color: orange; font-weight: 600;">Ожидание</span>

@@ -142,8 +142,8 @@ def account():
             SUBSCRIPTION_PRICE = 3000
             
             # Проверяем, есть ли уже подписка. 
-            # (Логика может быть сложнее, например, продление. Пока просто блокируем повторную покупку если есть)
-            if current_user.subscription:
+            # Разрешаем покупку только если подписки нет или она истекла
+            if current_user.is_subscription_active():
                  flash("У вас уже есть активный абонемент")
                  return redirect(url_for("account"))
 
@@ -222,6 +222,10 @@ def admin_update_role():
     user_id = request.form.get("user_id")
     new_role = request.form.get("new_role")
     
+    if int(user_id) == current_user.id:
+        flash("Нельзя изменить роль самому себе")
+        return redirect(url_for("admin_panel"))
+
     user = User.query.get(user_id)
     if user:
         user.role = new_role
@@ -238,6 +242,10 @@ def admin_update_role():
 def admin_delete_user():
     user_id = request.form.get("user_id")
     
+    if int(user_id) == current_user.id:
+        flash("Нельзя удалить самого себя")
+        return redirect(url_for("admin_panel"))
+
     user = User.query.get(user_id)
     if user:
         db.session.delete(user)

@@ -99,6 +99,11 @@ class User(db.Model, UserMixin):
             return self.subscription + timedelta(days=30)
         return None
 
+    def is_subscription_active(self):
+        if not self.subscription:
+            return False
+        return datetime.utcnow() < self.get_subscription_expiration()
+
     def get_today_meals(self):
         """
         Проверяет, ел ли ученик сегодня Завтрак и Обед.

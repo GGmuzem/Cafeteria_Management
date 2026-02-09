@@ -5,9 +5,14 @@
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     <h1><i class="fas fa-user-shield"></i> Панель администратора</h1>
-    <a href="{{ url_for('account') }}" class="btn btn-outline">
-        <i class="fas fa-arrow-left"></i> Профиль
-    </a>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('admin.admin_requests') }}" class="btn btn-primary">
+            <i class="fas fa-clipboard-list"></i> Заявки
+        </a>
+        <a href="{{ url_for('account') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Профиль
+        </a>
+    </div>
 </div>
 
 <div class="card">
@@ -29,8 +34,13 @@
                 {% for user, wallet in users %}
                 <tr>
                     <td>{{ user.id }}</td>
-                    <td><strong>{{ user.login }}</strong></td>
+                    <td><a href="{{ url_for('admin.user_profile', user_id=user.id) }}"
+                            style="font-weight: bold; text-decoration: underline;">{{ user.login }}</a></td>
                     <td>
+                        {% if user.id == current_user.id %}
+                        <span class="badge" style="background-color: #e2e8f0; color: #4a5568;">Текущий
+                            пользователь</span>
+                        {% else %}
                         <form method="POST" action="/admin-panel/update_role" style="display:inline;">
                             <input type="hidden" name="user_id" value="{{ user.id }}">
                             <div class="select-wrapper" style="width: auto; display: inline-block;">
@@ -44,6 +54,7 @@
                                 </select>
                             </div>
                         </form>
+                        {% endif %}
                     </td>
                     <td><code
                             style="background: #f4f4f4; padding: 2px 5px; border-radius: 4px;">{{ user.wallet }}</code>
@@ -51,6 +62,7 @@
                     <td style="color: var(--success-color); font-weight: bold;">{{ wallet.money if wallet else 0 }} ₽
                     </td>
                     <td>
+                        {% if user.id != current_user.id %}
                         <form method="POST" action="/admin-panel/delete_user" style="display:inline;"
                             onsubmit="return confirm('Вы уверены, что хотите удалить пользователя {{ user.login }}?');">
                             <input type="hidden" name="user_id" value="{{ user.id }}">
@@ -59,6 +71,7 @@
                                 <i class="fas fa-trash"></i> Удалить
                             </button>
                         </form>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
