@@ -15,4 +15,4 @@ ENV PYTHONUNBUFFERED=1
 
 # Запускаем Flask на порту 8080, доступном извне (0.0.0.0)
 # Убедитесь, что FLASK_APP указывает на точку входа (например, src/app.py или src/main.py)
-CMD ["flask", "--app", "src/app.py", "run", "--host=0.0.0.0", "--port=8080"]
+CMD ["python", "src/app.py"]
