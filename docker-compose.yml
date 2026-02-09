@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./src/database/cafeteria.db:/app/src/database/cafeteria.db
+      - ./src/database:/app/src/database
 
   worker:
     build: .
